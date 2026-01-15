@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.8)  13 JAN 2026 20:54
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.8)  15 JAN 2026 16:43
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -668,11 +668,7 @@ Package fontspec Info:
 (fontspec)             <->"Times New
 (fontspec)             Roman/BI/OT:script=latn;language=dflt;+smcp;mapping=tex-text;"
 
- (./main.aux (./body/denotation.aux) (./body/chap01.aux
-
-LaTeX Warning: Label `Fig1-1' multiply defined.
-
-) (./body/chap02.aux) (./body/chap03.aux) (./body/chap04.aux) (./body/conclusion.aux
+ (./main.aux (./body/denotation.aux) (./body/chap01.aux) (./body/chap02.aux) (./body/chap03.aux) (./body/chap04.aux) (./body/conclusion.aux
 
 LaTeX Warning: Label `sec:conclusion' multiply defined.
 
@@ -994,6 +990,8 @@ File: figures/Fig1-1.png Graphic file (type bmp)
 
  (./body/chap02.tex
 Chapter 2.
+File: figures/动作检测、时序动作检测、时空动作检测任务定义_2-1.png Graphic file (type bmp)
+<figures/动作检测、时序动作检测、时空动作检测任务定义_2-1.png>
 
 
 [10
@@ -1001,9 +999,11 @@ Chapter 2.
 
 
 
-])
+]
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 66.
 
-[11]
+
+[11])
 
 [12]
 \openout2 = `body/chap03.aux'.
@@ -1032,8 +1032,6 @@ File: figures/Fig4-1.png Graphic file (type bmp)
 
 
 ]
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 44.
-
 
 [15]
 
@@ -1144,14 +1142,20 @@ L3 programming layer <2022/08/05>
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 84CEFEA6FE3CF320F96285C90B0F703F;4976.
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `main.out':
+(rerunfilecheck)             Before: 017482DD3929FF38175BA8709D7116E9;4915
+(rerunfilecheck)             After:  E63A05C7770091DA26E0896EEBE828DD;4643.
  ) 
 Here is how much of TeX's memory you used:
- 18768 strings out of 473831
- 409647 string characters out of 5729466
- 812615 words of memory out of 5000000
- 41448 multiletter control sequences out of 15000+600000
+ 18758 strings out of 473831
+ 408571 string characters out of 5729466
+ 812710 words of memory out of 5000000
+ 41437 multiletter control sequences out of 15000+600000
  571553 words of font info for 146 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  89i,12n,106p,861b,543s stack positions out of 10000i,1000n,20000p,200000b,200000s
