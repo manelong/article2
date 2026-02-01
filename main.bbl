@@ -1,0 +1,215 @@
+\begin{thebibliography}{10}
+
+\bibitem{CVB}
+规划院信息网络中心.
+\newblock 《中国视听大数据（CVB）2025年体育赛事收视报告》.
+\newblock Technical report, 国家广播电视总局, 12, 2025.
+\newblock  {\url{https://www.nrta.gov.cn/art/2025/12/26/art_114_72195.html}}.
+
+\bibitem{国家体育报}
+傅潇雯.
+\newblock 《AI无所不在 让体育更智能》.
+\newblock Technical report, 中国体育报, 4, 2025.
+\newblock  {\url{https://www.sport.gov.cn/n20001280/n20745751/c28601905/content.html}}.
+
+\bibitem{ART}
+J.~Zhao, S.~Liao, X.~Li, B.~Shuai, C.~Chen.
+\newblock {ART}: Actor-Related Tubelet for Detecting Complex-shaped Action Tubes, 2024.
+\newblock  {\url{https://openreview.net/forum?id=ICr9KMxa1K}}.
+
+\bibitem{fast-r-cnn}
+R.~Girshick.
+\newblock Fast r-cnn.
+\newblock in: Proceedings of the IEEE international conference on computer vision, 2015:1440--1448.
+
+\bibitem{saha}
+S.~Saha, G.~Singh, M.~Sapienza, P.~H. Torr, F.~Cuzzolin.
+\newblock Deep learning for detecting multiple space-time action tubes in videos.
+\newblock arXiv preprint arXiv:1608.01529, 2016.
+
+\bibitem{acam}
+O.~Ulutan, S.~Rallapalli, M.~Srivatsa, C.~Torres, B.~Manjunath.
+\newblock Actor conditioned attention maps for video action detection.
+\newblock in: Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, 2020:527--536.
+
+\bibitem{mrsn}
+Y.-D. Zheng, G.~Chen, M.~Yuan, T.~Lu.
+\newblock Mrsn: Multi-relation support network for video action detection.
+\newblock in: 2023 IEEE International Conference on Multimedia and Expo (ICME). IEEE, 2023:1026--1031.
+
+\bibitem{vit}
+A.~Dosovitskiy.
+\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
+\newblock arXiv preprint arXiv:2010.11929, 2020.
+
+\bibitem{transformer}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N. Gomez, et~al.
+\newblock Attention is all you need.
+\newblock Advances in neural information processing systems, 2017, 30.
+
+\bibitem{hit}
+G.~J. Faure, M.-H. Chen, S.-H. Lai.
+\newblock Holistic interaction transformer network for action detection.
+\newblock in: Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, 2023:3340--3350.
+
+\bibitem{evad}
+L.~Chen, Z.~Tong, Y.~Song, G.~Wu, L.~Wang.
+\newblock Efficient video action detection with token dropout and context refinement.
+\newblock in: Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023:10388--10399.
+
+\bibitem{cfad}
+Y.~Li, W.~Lin, J.~See, N.~Xu, S.~Xu, K.~Yan, et~al.
+\newblock Cfad: Coarse-to-fine action detector for spatiotemporal action localization.
+\newblock in: European Conference on Computer Vision. Springer, 2020:510--527.
+
+\bibitem{TrAD}
+J.~Luo, Y.~Yang, R.~Liu, L.~Chen, H.~Fei, C.~Hu, et~al.
+\newblock A Tracking-Based Two-Stage Framework for Spatio-Temporal Action Detection.
+\newblock Electronics, 2024, 13(3):479.
+
+\bibitem{yolo}
+J.~Redmon, S.~Divvala, R.~Girshick, A.~Farhadi.
+\newblock You only look once: Unified, real-time object detection.
+\newblock in: Proceedings of the IEEE conference on computer vision and pattern recognition, 2016:779--788.
+
+\bibitem{centernet}
+K.~Duan, S.~Bai, L.~Xie, H.~Qi, Q.~Huang, Q.~Tian.
+\newblock Centernet: Keypoint triplets for object detection.
+\newblock in: Proceedings of the IEEE/CVF international conference on computer vision, 2019:6569--6578.
+
+\bibitem{sparse-r-cnn}
+P.~Sun, R.~Zhang, Y.~Jiang, T.~Kong, C.~Xu, W.~Zhan, et~al.
+\newblock Sparse r-cnn: End-to-end object detection with learnable proposals.
+\newblock in: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2021:14454--14463.
+
+\bibitem{detr}
+N.~Carion, F.~Massa, G.~Synnaeve, N.~Usunier, A.~Kirillov, S.~Zagoruyko.
+\newblock End-to-end object detection with transformers.
+\newblock in: European conference on computer vision. Springer, 2020:213--229.
+
+\bibitem{woo}
+S.~Chen, P.~Sun, E.~Xie, C.~Ge, J.~Wu, L.~Ma, et~al.
+\newblock Watch only once: An end-to-end video action detection framework.
+\newblock in: Proceedings of the IEEE/CVF International Conference on Computer Vision, 2021:8178--8187.
+
+\bibitem{moc}
+Y.~Li, Z.~Wang, L.~Wang, G.~Wu.
+\newblock Actions as moving points.
+\newblock in: European Conference on Computer Vision. Springer, 2020:68--84.
+
+\bibitem{tuber}
+J.~Zhao, Y.~Zhang, X.~Li, H.~Chen, B.~Shuai, M.~Xu, et~al.
+\newblock Tuber: Tubelet transformer for video action detection.
+\newblock in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2022:13598--13607.
+
+\bibitem{star}
+A.~A. Gritsenko, X.~Xiong, J.~Djolonga, M.~Dehghani, C.~Sun, M.~Lucic, et~al.
+\newblock End-to-end spatio-temporal action localisation with video transformers.
+\newblock in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024:18373--18383.
+
+\bibitem{vivit}
+A.~Arnab, M.~Dehghani, G.~Heigold, C.~Sun, M.~Lu{\v{c}}i{\'c}, C.~Schmid.
+\newblock Vivit: A video vision transformer.
+\newblock in: Proceedings of the IEEE/CVF international conference on computer vision, 2021:6836--6846.
+
+\bibitem{stmixer}
+T.~Wu, M.~Cao, Z.~Gao, G.~Wu, L.~Wang.
+\newblock Stmixer: A one-stage sparse action detector.
+\newblock in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2023:14720--14729.
+
+\bibitem{stdet}
+Y.~Li, Z.~Wang, Z.~Li, L.~Wang.
+\newblock Sparse action tube detection.
+\newblock IEEE Transactions on Image Processing, 2024, 33:1740--1752.
+
+\bibitem{ucf-sport}
+K.~Soomro, A.~R. Zamir.
+\newblock Action recognition in realistic sports videos.
+\newblock in: Computer vision in sports, Springer, 2015:181--208.
+
+\bibitem{ucf101}
+K.~Soomro, A.~R. Zamir, M.~Shah.
+\newblock Ucf101: A dataset of 101 human actions classes from videos in the wild.
+\newblock arXiv preprint arXiv:1212.0402, 2012.
+
+\bibitem{sports-1m}
+A.~Karpathy, G.~Toderici, S.~Shetty, T.~Leung, R.~Sukthankar, L.~Fei-Fei.
+\newblock Large-scale video classification with convolutional neural networks.
+\newblock in: Proceedings of the IEEE conference on Computer Vision and Pattern Recognition, 2014:1725--1732.
+
+\bibitem{finegym}
+D.~Shao, Y.~Zhao, B.~Dai, D.~Lin.
+\newblock Finegym: A hierarchical video dataset for fine-grained action understanding.
+\newblock in: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2020:2616--2625.
+
+\bibitem{soccernet}
+A.~Cioppa, S.~Giancola, V.~Somers, F.~Magera, X.~Zhou, H.~Mkhallati, et~al.
+\newblock SoccerNet 2023 challenges results.
+\newblock Sports Engineering, 2024, 27(2):24.
+
+\bibitem{socceruni}
+J.~Rao, H.~Wu, H.~Jiang, Y.~Zhang, Y.~Wang, W.~Xie.
+\newblock Towards universal soccer video understanding.
+\newblock in: Proceedings of the Computer Vision and Pattern Recognition Conference, 2025:8384--8394.
+
+\bibitem{socceragent}
+J.~Rao, Z.~Li, H.~Wu, Y.~Zhang, Y.~Wang, W.~Xie.
+\newblock Multi-agent system for comprehensive soccer understanding.
+\newblock in: Proceedings of the 33rd ACM International Conference on Multimedia, 2025:3654--3663.
+
+\bibitem{soccermaster}
+H.~Yang, J.~Rao, H.~Wu, W.~Xie.
+\newblock SoccerMaster: A Vision Foundation Model for Soccer Understanding.
+\newblock arXiv preprint arXiv:2512.11016, 2025.
+
+\bibitem{matchtime}
+J.~Rao, H.~Wu, C.~Liu, Y.~Wang, W.~Xie.
+\newblock Matchtime: Towards automatic soccer game commentary generation.
+\newblock arXiv preprint arXiv:2406.18530, 2024.
+
+\bibitem{sportsgpt}
+W.~Tian, R.~Lin, H.~Zheng, Y.~Yang, G.~Wu, Z.~Zhang, et~al.
+\newblock SportsGPT: An LLM-driven Framework for Interpretable Sports Motion Assessment and Training Guidance.
+\newblock arXiv preprint arXiv:2512.14121, 2025.
+
+\bibitem{smartboard}
+Z.~Liu, X.~Xie, M.~He, W.~Zhao, Y.~Wu, L.~Cheng, et~al.
+\newblock Smartboard: Visual Exploration of Team Tactics with LLM Agent.
+\newblock IEEE Transactions on Visualization and Computer Graphics, 2024.
+
+\bibitem{TAAD}
+G.~Singh, V.~Choutas, S.~Saha, F.~Yu, L.~Van~Gool.
+\newblock Spatio-temporal action detection under large motion.
+\newblock in: Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, 2023:6009--6018.
+
+\bibitem{yolov5-sort}
+Y.~Gai, W.~He, Z.~Zhou.
+\newblock Pedestrian target tracking based on DeepSORT with YOLOv5.
+\newblock in: 2021 2nd International Conference on Computer Engineering and Intelligent Control (ICCEIC). IEEE, 2021:1--5.
+
+\bibitem{osnet}
+T.-T. Cao, X.-H. Manh, A.-H. Kieu, T.-T. Nguyen, V.-H. Dao, H.~Vu, et~al.
+\newblock OSNet-DCN: Integrating Deformable Feature Learning for Tracking Lesion in Endoscopic Videos.
+\newblock in: 2025 International Conference on Multimedia Analysis and Pattern Recognition (MAPR). IEEE, 2025:1--6.
+
+\bibitem{finesports}
+J.~Xu, G.~Zhao, S.~Yin, W.~Zhou, Y.~Peng.
+\newblock Finesports: A multi-person hierarchical sports video dataset for fine-grained action understanding.
+\newblock in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024:21773--21782.
+
+\bibitem{blip}
+J.~Li, D.~Li, C.~Xiong, S.~Hoi.
+\newblock Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation.
+\newblock in: International conference on machine learning. PMLR, 2022:12888--12900.
+
+\bibitem{sportshhi}
+T.~Wu, R.~He, G.~Wu, L.~Wang.
+\newblock Sportshhi: A dataset for human-human interaction detection in sports videos.
+\newblock in: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2024:18537--18546.
+
+\bibitem{tsm}
+J.~Lin, C.~Gan, S.~Han.
+\newblock Tsm: Temporal shift module for efficient video understanding.
+\newblock in: Proceedings of the IEEE/CVF international conference on computer vision, 2019:7083--7093.
+
+\end{thebibliography}

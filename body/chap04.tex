@@ -1,215 +1,678 @@
-\chapter{学位论文写作细则}
+\chapter{基于时空一致性建模的体育时空动作检测算法研究} 
+
 \label{cha:fourthsection}
 
-学位论文很多的错误源于凌乱的格式。
+第三章从特征增强的角度出发，利用多模态大模型构建外部知识库，旨在为复杂的
+体育运动时空动作检测补充丰富的语义信息，而本章专注于时空特征的
+深度挖掘，致力于提升模型自身的时空一致性建模能力。鉴于体育动作具有运动
+剧烈、位移显著以及与场景元素高度耦合等特性，本章提出了一种基于动作感知
+引导的时空一致性建模方法，该方法通过生成动作相关的动作管查询，结合正交自
+适应采样机制和解耦时空注意力模块，有效实现了跨帧特征关联和上下文提取，
+从而有效提升模型在复杂体育场景下的检测性能。
 
-为规范学位论文写作，本章结合工科学位论文的特点，参照学术出版规范，就图、表制作，名词、术语、单位、符号、数量等的使用规范化进行了说明。
+本章的组织结构安排如下：4.1节首先剖析现有方法在时空一致性建模含义和目前存在的
+局限性，并阐述本章的研究动机与思路；4.2节详细介绍本章模型的整体架构；随后，4.3节、
+4.4节和4.5节分别阐述本章设计的三个核心模块：动作相关的动作管查询生成模块、动作
+特征引导的正交自适应采样模块以及解耦时空注意力模块；最后，4.6节介绍了实验设置并
+对实验结果进行深入分析，4.7节对本章工作进行了总结。
 
-\textcolor{red}{（论文中所有图表清晰，字体、格式一致，图标题在图下方，表标题在表上方。图表引用和图表不跨页，确有需要跨页不超过1页）}
+\section{引言}
 
+在时空动作检测任务中，“时空一致性建模”指的是一个包含双重目标的联合问题：
+（1）同一动作实例在时序维度上的帧间关联；
+（2）动作实例与时空上下文（如交互物体、场景信息）的动态关系建模。
 
-\section{关于图}
-\label{sec:parameters}
-参照CY/T 170-2019《学术出版规范 插图》标准执行。
+帧间关联是时空动作检测面临的关键挑战之一。早期研究通常基于帧级检测结果，将
+帧间关联视为独立的前处理或后处理步骤，主要依赖相邻帧检测框的空间重叠度（IoU）和视觉
+相似性进行连接，然而，这类基于局部启发式规则的方法忽略了跨帧特征的连续性，人为
+割裂了检测与关联过程，难以处理非连续的时空轨迹。随后，部分工作尝试设计三维锚框以
+实现特征层面的关联，但这些方法通常建立在“目标运动平滑”“小位移变化”的假设之上，
+预定义的三维锚框在时序维度缺乏灵活性，导致其在处理大位移运动时性能显著下降。
+相比之下，基于查询（Query-based）的方法利用可学习的动作管查询和全局自注意力机制，能够直接
+建立端到端的长程时空依赖，即使在目标发生剧烈位移时，模型仍然能够较好地保持时空特征的
+一致性。图\ref{Fig4-1}展示了现有的几种帧间动作关联方法之间的区别。
 
-论文中的图一般居中放置，大小要合适，宽度不得超过文字边缘，图中文字一般不大于五号；图像分辨率应尽量不低于300 dpi；若为自画图，尽量采用中文标识，图中文字经缩放后，字号不得大于五号；图注也只需加注中文，宋体，五号。若引用文献中的图，应在图注最后标注引用，图注后无需加标点符号。文中所有的图都应予编号，图序号按“章”进行编号，如图\ref{Fig4-1}所示：
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics{figures/Fig4-1.png}
-    \caption{闭环系统示意图}\label{Fig4-1}
+\begin{figure}[!htbp] 
+    \centering 
+    \includegraphics[width=\textwidth]{figures/关联方式.png} 
+    \caption{主流帧间动作关联方法示意图}\label{Fig4-1} 
 \end{figure}
-制作图时请注意:
-\begin{enumerate}
-    \item[（1）] 内容与形式应力求统一。风格、体例应一致。线条图应清晰，线型选用、线条粗细应规范，色调准确，图形布局合理、大小适当。连续色调图应清晰，层次感和饱和度适当。
-    \item[（2）] 每幅都得有图题。图题应准确、简明地阐释该图内容。
-    \item[（3）] 图应与正文内容相关。应选择能有效传达关键信息的图，应具有自明性、简明性、科学性和艺术性。
-    \item[（4）] 结构示意图、原理示意图和流程图的设计制作应符合现行的国家标准或行业标准。
-    \item[（5）] 坐标曲线图的坐标轴、标值线的画法应规范，标目、标值、坐标原点应标注完整、规范、统一。
-    \item[（6）] 图中涉及标志用图形符号、设备用图形符号和技术文件用图形符号应符合现行的国家标准。图中的术语、数值、符号等应与正文其它图中的表述一致。
-    \item[（7）] 图应尽量与相应的文字靠近，根据排版可放在文字的下方或上方。各章节不能因为图的原因出现大段留白的现象。
-    \item[（8）] 图中应有对于需特别说明问题部分的标识说明，如图像中需给出比例尺，在彩图中给出Color bar等。说明字体与比例尺的字体应至少比正文小一号。
-\end{enumerate}
 
+具体来说，Tuber提出的动作管查询设计验证了时空正交解耦的自注意力机制有助于在查询层
+面实现同一动作实例的一致性关联，然而，Tuber完全依赖于Transformer架构的长程建模能力，
+缺乏对跨帧时空特征一致性的显式引导，在面对复杂运动场景时，这种隐式建模存在信息瓶颈。
+在此基础上，STAR设计了正交解耦的交叉注意力
+机制，限制动作管查询仅与当前时间步的特征进行交互，这虽然缓解了计算负担，但同样未解决跨
+帧特征一致性显式建模的问题。ART方法则利用人物检测器和RoI Align聚合关键帧特征，经时序
+扩展生成人物相关的动作管查询，但该查询仅包含关键帧的人物外观先验，缺乏对运动趋势和场景
+上下文等关键信息的利用。
 
+综上所述，受限于体育运动的剧烈性和环境复杂性，现有基于查询的方法在处理体育时空动作检测时
+仍面临两大难题：（1）动作实例间的帧间信息关联鲁棒性不足，难以适应大位移和剧烈形变；（2）对
+时空上下文特征的挖掘存在局限，导致对相似体育动作的辨别能力较弱。
 
+针对上述问题，本章提出了一种基于动作感知引导的时空一致性建模方法
+（Action-guided Spatiotemporal Consistency Modeling, AGCM）。
+具体来说，为了增强帧间动作实例关联，设计了动作感知模块（Action-Aware Module, AAM），
+该模块显式地通过从全局时空特征中挖掘潜在的动作相关的上下文特征，并以此引导解码器中的信息聚合过程，
+从而保证了时间维度上的主题一致性。为了提升时空上下文特征的挖掘能力，本章进一步设计了动作
+特征引导的正交自适应采样模块（Action-guided Adaptive Sampling Module, AGAS）以及解耦时空
+注意力模块（Decoupled Spatiotemporal Attention Module, DSTA）。前者通过自适应采样
+策略，灵活地提取与聚合时空特征图中与动作相关的特征；后者则通过时空解耦增强了模型对
+时空依赖的挖掘能力。
 
+本章在JHMDB51-21、UCF101-24和Multisports数据集上与现有方法进行了对比实验，并通过各模块间的消融实验，
+验证了所提方法的有效性。本章的主要贡献包括以下三点：
 
-\section{关于表格}
-\label{sec:results}
-学位论文中的表格要使用三线格，居中放置。表格题目应居中放置于表格顶端。仅需提供中文表头，表头及表中文字应小于正文字号，一般为宋体，五号；若其中含英文或数字时，字体为Times New Roman，五号。表格题目与表格尽量不要分页。实在需要分页时，请在下一页续表。若该表完全源于文献，应在表格题目最后标注引用。标头最后不加标点。如表\ref{Tab4-1}所示：
+（1）提出了一种基于动作感知引导的时空一致性建模框架（AGCM）。针对体育场景下时空一致性建模困难的
+问题，本章打破了以往隐式建模的局限，提出利用生成动作相关的相关动作管查询，显式引导
+时空特征的一致性建模。
+
+（2）设计了动作感知模块（AAM），显著增强了帧间动作关联的鲁棒性。为了解决同一动作实例在不同时间步
+的时空特征关联问题，该模块通过监督学习感知全局时空特征中的潜在动作特征，生成了动作相关的动作管查询，
+引导解码器自适应地关联动作相关的时空特征。
+
+（3）提出了动作特征引导的自适应采样模块（AGAS）与解耦时空交叉注意力模块（DSTA），
+AGAS通过自适应采样策略灵活聚焦与动作高度相关的时空特征，
+DSTA则通过解耦交叉注意力高效地建模了时空依赖关系，提升了对时空上下文特征的
+挖掘能力
+
+\section{模型整体架构}
+\begin{figure}[!htbp] 
+    \centering 
+    \includegraphics[width=\textwidth]{figures/第4章/整体框架.png} 
+    \caption{基于动作感知引导的时空一致性建模方法整体框架}\label{Fig4-2} 
+\end{figure}
+如图\ref{Fig4-2}所示，本章提出的基于动作感知引导的时空一致性建模方法
+整体架构由视频特征提取、动作相关动作管查询生成模块、时空动作解码器以及检测头四个主要部分组成。
+在时空特征提取阶段，首先利用基于3D CNN的预训练特征提取网络从输入视频片段$X \in \mathbb{R}^{T \times H \times W \times 3}$
+中提取多尺度的时空视觉特征，构建出时空特征金字塔 $\mathcal{S} =\{S_i\}_{i=3}^{5}$，其中第 $i$ 层特征图
+$S_i \in \mathbb{R}^{T \times h_i \times w_i \times c_f}$。紧接着，
+为了解决随机初始化查询难以捕捉复杂运动的问题，动作相关动作管查询生成模块引入了
+动作感知模块（AAM），在训练阶段，AAM通过额外的辅助分类头，使可学习的
+动作感知查询$Q_{act} \in \mathbb{R}^{N \times c_q}$（$N$ 为查询数量）
+具备挖掘潜在的“动作先验”的能力，
+在推理阶段，由AAM基于全局时空特征感知“动作相关”的时空信息并生成具有动作先验的查询$Q_{act}$；
+随后，将 $Q_{act}$ 会在时间维度上进行复制与时序扩展，并叠加时序位置编码，生成贯穿整个时序的动作
+管查询 $Q_{tube} \in \mathbb{R}^{N \times T \times c_q}$。在时空动作解码器中，这些动作管
+查询首先经过正交分解的自注意力机制（Factorised Self Attention，FSA）进行内部交互，
+再输入到动作特征引导的自适应采样模块AGAS，通过该模块可以自适应获得动作相关的采样特征
+$S_{sampled} \in \mathbb{R}^{N \times n \times T \times c_f}$（其中$n$为
+采样点数量）；最后，通过解耦时空交叉注意力模块（DSTA）
+进行动作管查询$Q_{tube}$与采样特征$S_{sampled}$之间的交互，将视频上下文信息注入动作管查询中，得
+到更新后的特征$Q_{update}$，在下一轮循环解码计算时，会将$Q_{update}$与$Q_{tube}$进行加和以
+生成新的$Q_{tube}$。经过解码器的多层迭代更新后，最终的动作管特征$Q_{update}$被送入检测头，该模块由
+三个任务分支组成，均由前馈神经网络FFN构成：一个动作分类头，用于预测动作实例的类别，输出维度为
+$\hat{y}_{cls} \in \mathbb{R}^{N \times (K+1)}$（$K$ 为类别数）；
+时序定位头和空间定位头分别负责时序边界判断和矩形框回归，前者输出时序边界概率
+$\hat{y}_{bound} \in \mathbb{R}^{N \times T}$，后者输出归一化的时空边界框坐标
+$\hat{y}_{box} \in \mathbb{R}^{N \times 4 \times T}$，从而实现对时空动作的精确定位与识别。
+
+\section{动作相关的动作管查询生成}
+
+为了增强帧间动作实例关联的鲁棒性，本节设计了动作相关的动作管查询生成模块，该模块包含两个主要部分：
+动作感知模块（AAM）和时序拓展模块，具体结构如图\ref{Fig4-3}所示。前者旨在基于全局时空特征挖掘
+潜在的动作相关特征，实现视频片段中动作实例信息的预提取，
+这使得动作感知查询能够包含丰富的动作实例先验，从而指导后续的时空特征采样；后者则负责将动作实例
+感知特征在时间维度上进行扩展，并通过补充位置编码信息注入时序位置先验，最终生成既包含动作实例语义，又能
+感知时间维度运动变化的动作管查询。下面首先介绍AAM。
+\begin{figure}[!htbp] 
+    \centering 
+    \includegraphics[width=\textwidth]{figures/第4章/模块1.png} 
+    \caption{动作实例相关的动作管查询生成模块}\label{Fig4-3} 
+\end{figure}
+现有的时空动作检测方法（如TubeR、STAR）中，动作管查询通常采用随机初始化，或仅随机初始化空间查询后在
+时间维度上复制，这种方式忽略了视频片段中潜在的特定动作实例信息，导致查询难以迅速捕捉复杂运动特征；
+另有一些方法（如 ART、STMixer）依赖预生成的关键帧特征，忽略了跨帧时空一致性的显式建模，导致在
+复杂运动场景下，动作实例间的帧间关联鲁棒性不足。为了解决这个问题，本节设计了动作感知模块（AAM），该模块
+在训练阶段，AAM通过一个额外的辅助分类头，监督动作感知查询学习潜在的动作先验信息
+；在推理阶段，AAM基于全局时空特征感知获取动作实例相关的动作查询。
+
+具体来说，对于由视觉特征提取器得到的深层时空特征$S_5 \in \mathbb{R}^{T \times h_5 \times w_5 \times c_5}$，
+在AAM中，首先通过一个轻量的动作提取模块 $\mathcal{F}_{ext}(\cdot)$ 对时空特征进行增强。该模块由
+三个堆叠的（Conv3D, BN3D, ReLU）单元组成，并引入残差连接以缓解梯度消失问题，增强后的特征$F_{enh}$计算如下：
+\begin{equation}
+    F_{enh} = \mathcal{F}{ext}(S_5) + S_5
+\end{equation}
+随后，为了保留丰富的时空细节，模型并未对$F_{enh}$进行全局池化压缩，而是将其在时空维度上进行展平，
+得到序列化的动作实例特征$F_{act}$，表示为：
+\begin{equation}
+    F_{act} = \text{Flatten}(F_{enh}) \in \mathbb{R}^{L \times c_5}
+\end{equation}
+其中，$L = T \times h_5 \times w_5$ 表示时空特征序列的长度，$c_5$为特征通道数。
+接着，为了从 $F_{act}$ 中解耦出$N$个独立的潜在动作实例，模型定义了一组可学习的动作感知查询
+$Q_{act} \in \mathbb{R}^{N \times c_q}$。AAM利用多头注意力模块建立动作感知查询与时空特征之间的交互，
+在计算过程中将$Q_{act}$作为查询，将包含丰富时空细节的$F_{act}$同时作为键和值。
+最终生成具有实例区分性的动作感知查询$Q_{act}$：
+\begin{equation}
+    Q_{act} = \text{MHA}(Q_{act}, F_{act}, F_{act}) \in \mathbb{R}^{N \times c_q}
+\end{equation}
+为了确保动作感知查询能够聚焦于视频片段中的真实动作实例，在训练阶段，AAM会对$Q_{act}$进行监督学习，
+使其能够预感知全局时空特征中的动作实例信息。具体来说，动作感知查询$Q_{act}$会被送入一个辅助分类头，
+用来预测输入片段中真实存在的动作类别，并通过与真实标签进行匹配监督，而在推理阶段，该分类头则被舍弃，
+动作感知查询$Q_{act}$直接用于后续的时空特征采样与建模。通过这种设计，AAM能够促使动作感知查询
+挖掘视频片段中潜在的动作实例先验信息，为后续的时空特征采样和时空建模提供了有力的指导。
+
+接下来，时序拓展环节负责将动作实例感知查询$Q_{act}$在时间维度上进行扩展，以生成贯穿整个
+时序的动作管查询。具体来说，首先将$Q_{act}$在时间维度上进行复制扩展，得到初始的动作管
+查询$Q_{temp} \in \mathbb{R}^{N \times T \times C}$。为了让$Q_{temp}$具备感知动作
+在不同帧之间的动态变化，模型引入了时序位置编码（Temporal Positional Embedding） $P_{temp}$，
+将其与$Q_{temp}$进行加和运算，最终生成了包含动作实例先验且具备时序位置信息的动作管查询$Q_{tube} \in \mathbb{R}^{N \times T \times C}$。
+
+\section{动作引导的自适应采样模块}
+
+在得到动作相关的动作管查询$Q_{tube}$后，时空动作解码器需要基于这些查询从多尺度特征图
+中提取与当前动作实例高度相关的时空特征。为了增强对复杂运动场景下的时空上下文特征挖掘能力，
+本节设计了动作引导的自适应采样模块（ADAS），其结构如图 \ref{Fig4-4} 所示。该模块通过
+生成与动作实例特征相关的采样点偏移量，实现对多尺度时空特征图的自适应采样，从而灵活地聚焦于
+与动作高度相关的区域，提升模型对局部细节和动态变化的感知能力。
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.8\textwidth]{figures/第4章/模块2.png}
+    \caption{实例特征引导的自适应采样模块}\label{Fig4-4}
+\end{figure}
+对视觉特征进行自适应采样的思想在计算机视觉领域由来已久（如 DCN、Deformable DETR、DAT），
+通过预测采样点偏移引导模型关注重要区域，不仅可以扩大有效感受野、提高信噪比，还能更好地关注时空上下文，
+而通过动作引导的自适应采样模块，更能确保采样特征与当前动作高度相关。
+首先，与现有范式（如 TubeR、STAR）相同，在动作管查询进入AGAS之前，首先通过一个正交时空自注意力
+模块（FSA）进行内部交互，以增强查询间的信息传递与协同。IASM接收经过FSA增强后的动作管查询
+$Q_{tube}^{'} \in \mathbb{R}^{N \times T \times C}$ 以及多尺度时空特征图$\mathcal{S} =\{S_i\}_{i=3}^{5}$作为输入。
+随后，$Q_{tube}^{'}$会通过两个线性层，其中，其中一个线性层会生成
+该动作管查询在每一时间步的参考点（Reference Point）$P_{ref} \in \mathbb{R}^{N \times T \times 2}$，
+另一个线性层动作管查询特征预测采样偏移量,具体计算如下：
+\begin{align}
+    P_\text{ref} &= \text{Linear}_{\text{ref}}(Q_\text{tube}) \\
+    \Delta P_i &= \text{Linear}_{\text{offset}}(Q_\text{tube})
+\end{align}
+其中，$\Delta P_i \in \mathbb{R}^{N \times T \times n \times 2}$ 表示$N$个实例在$T$个时间步上、每个步长的$n$个采样点的坐标偏移。
+接下来，模块在特征图$S_i$上执行自适应采样。对于每个动作管查询在时刻$t$的第 $k$ 个采样点，其绝对采样位置计算为
+$P_{sample} = \phi(P_{ref} + \Delta P_{ik})$（$\phi$ 为坐标归一化函数）。模块通过双线性插值从$S_i$中提取该
+位置的时空特征，得到层级采样特征 $S_{sampled}^i$：
+\begin{equation}
+    S_{sampled}^i = \text{BilinearSample}(S_i, P_{ref} + \Delta P_{i}) \in \mathbb{R}^{N \times T \times n \times C}
+\end{equation}
+通过这种实例特征引导的自适应采样策略，IASM 能够基于动作管查询预测的参考轨迹，灵活地从多尺度特征图中抓取与当前动作高度相关的局部细节，
+显著提升了模型对复杂运动场景的感知能力。
+\section{解耦时空交叉注意力模块}
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.85\textwidth]{figures/第4章/模块3.png}
+    \caption{解耦时空交叉注意力模块}\label{Fig4-5}
+\end{figure}
+接下来，对于采样特征 $S_{sampled} \in \mathbb{R}^{N \times T \times n \times c_f}$ 和动作管查询
+$Q_{tube} \in \mathbb{R}^{N \times T \times c_q}$，模型需要将二者进行有效融合，以便将关键的视觉上下文信息注入到
+动作管查询中。为此，本节设计了解耦时空交叉注意力模块（DSTA），其结构如图 \ref{Fig4-5} 所示。
+
+不同于（deformable detr）所简单地采样线性加权来进行特征融合，
+为了能够基于候选特征自适应地从这$n$个候选点中筛选并聚合最关键的视觉信息，并进一步建模时序依赖，本节设计了
+时空解耦注意力模块（DSTA），该模块包含空间交叉注意力（Spatial Cross Attention，SCA）
+和时序自注意力（Temporal Cross Attention，TCA）两个部分，SCA和TSA都是基于多头注意力实现。
+在 $S_{sampled}$和$Q_{tube}$进行交互之前，会先通过线性层将它们的通道数映射到统一的维度$C$，以确保后续注意力计算的一致性。
+首先，SCA旨在将$n$个离散的采样特征聚合为紧凑的实例特征，对于动作管查询 $Q_{tube} \in \mathbb{R}^{N \times T \times C}$ 
+和未聚合的采样特征 $S_{sampled} \in \mathbb{R}^{N \times T \times n \times C}$，SCA先将$Q_{tube}$
+重塑为$N \cdot T \times 1 \times C$作为查询，并将$S_{sampled}$重塑为 $N \cdot T \times n \times C$ 作为键和值。
+SCA通过如下公式进行计算：
+\begin{equation}
+    Q_{spatial} = LayerNorm(\text{SCA}(Q_{tube}, V_{sampled}, V_{sampled}) + Q_{tube})
+\end{equation}
+其中，输出特征 $Q_{spatial} \in \mathbb{R}^{N \cdot T \times 1 \times C}$，并在计算后恢复为$N \times T \times C$。
+在这一过程中，注意力机制会计算查询与每个采样点之间的语义相似度，从而赋予包含显著动作细节的采样点更高的权重。
+接下来，时序自注意力模块（TCA）负责在时间维度上建模动作管查询的时序依赖，在进行TCA计算之前，对于采样特征$S_{sampled}$会
+先在空间维度进行聚合，得到时序特征$S_{temporal} \in \mathbb{R}^{N \times T \times c_f}$，具体计算如下：
+\begin{align}
+    S_{sampled} = LayerNorm(S_{sampled} )\\
+    \text{Weights} = \text{Softmax}(\text{MLP}(S_{sampled}))\\
+    S_{temporal} = \sum (S_{sampled} \odot \text{Weights})
+\end{align}
+其中，$\odot$ 表示逐元素乘法操作。随后，TCA将$Q_{spatial}$作为查询，
+将$S_{temporal}$作为键和值，计算公式如下：
+\begin{equation}
+    Q_{update} =  MLP(LayerNorm(\text{TCA}(Q_{spatial}, S_{temporal}, S_{temporal}) + Q_{spatial}))
+\end{equation}
+最后经过一个前馈神经网络（MLP）得到最终的更新特征$Q_{update} \in \mathbb{R}^{N \times T \times C}$。
+\begin{equation}
+    Q_{update} =  MLP(LayerNorm(Q_{update}))
+\end{equation}
+可以观察到，在SCA中注意力矩阵的形状为$1 \times n$，而在TCA中注意力矩阵的形状为$T \times T$，这表明DSTA通过解耦的方式
+分别在空间和时间维度上进行注意力计算，在SCA中关注空间位置间的关系，而在TCA中关注时间步间的依赖关系，
+通过这种解耦的时空交叉注意力机制，DSTA能够有效地融合动作管查询与采样特征，提升模型对时空上下文的挖掘能力，从而更好地捕捉复杂运动场景下的动作特征。
+
+\section{损失函数和匹配机制}
+
+（1）损失函数
+
+AGCM的总训练损失 $\mathcal{L}_{total}$由两部分组成：主损失 $\mathcal{L}_{train}$ 和辅助损失 $\mathcal{L}_{aux}$。
+
+其中，主损失分别包括分类损失$\mathcal{L}_{class}$、边界框回归损失 $\mathcal{L}_{box}$、管级广义交并比损失$\mathcal{L}_{giou}$以及时序掩码损失$\mathcal{L}_{tempmask}$四部分构成，定义如下：
+\begin{equation}
+    \mathcal{L}_{main} = \lambda_{class} \mathcal{L}_{class} + \lambda_{box} \mathcal{L}_{box} + \lambda_{giou} \mathcal{L}_{giou} + \lambda_{tempmask} \mathcal{L}_{tempmask}
+\end{equation}
+其中，$\lambda$ 表示各损失分量的权重系数。
+
+AGCM在基线方法的基础上对主损失函数进行了调整优化。
+具体而言，对于分类损失，在deformable detr的相关研究中表明，
+由于查询数量$N$一般大于实际存在的正样本数量$M$，这会导致训练时的正负样本不平衡的问题，
+而焦点损失（Focal loss）可以通过$(1-p)^\gamma$ 项自动降低了那些负样本的损失权重，
+让模型专注于那些难分类的样本。对于$N$个预测查询，分类损失的计算公式如下：
+\begin{equation}
+    \mathcal{L}_{class} = - \sum_{j=1}^{N} \left[ \alpha (1 - \hat{p}_j(c_j))^\gamma \log(\hat{p}_j(c_j)) \right]
+\end{equation}
+其中，$c_j$ 表示第$j$个查询对应的真实类别标签，$\hat{p}_j(c_j)$ 为模型预测该类别的概率，$\alpha$ 和 $\gamma$ 分别为平衡因子和调节因子。
+边界框回归损失 $\mathcal{L}_{box}$ 采用 $L_1$ 损失，直接惩罚匹配样本中预测框与真实框在中心点坐标及长宽上的绝对误差。
+管级广义交并比损失 $\mathcal{L}_{giou}$ 定义为当前实例在所有有效帧上2D GIoU的均值：
+\begin{equation}
+\mathcal{L}_{giou} = \sum_{i=1}^M \left( 1 - \frac{1}{T_{valid}^i} \sum_{t \in \mathcal{T}_i} \text{GIoU}(b_t^i, \hat{b}_t^{\hat{\sigma}(i)}) \right)
+\end{equation}
+其中，$M$ 为真实动作实例的总数，$\hat{\sigma}(i)$ 表示与第 $i$ 个真值匹配的预测索引，$\mathcal{T}_i$ 为第 $i$ 个动作实例存在的帧集合，$T_{valid}^i$ 为该集合的帧数，$b$ 与 $\hat{b}$ 分别代表真值框与预测框。
+此外，为提升动作起止时间的定位精度，模型引入STDet所设计的时序掩码损失 $\mathcal{L}_{tempmask}$，利用二元交叉熵（BCE）监督每一帧是否真实存在动作，
+而不仅仅通过分类损失的概率预测隐式地预测动作边界：
+\begin{equation}
+    \mathcal{L}_{mask} = - \frac{1}{N \cdot T} \sum_{j=1}^{N} \sum_{t=1}^T \left[ m_{j,t} \log(\hat{m}_{j,t}) + (1 - m_{j,t}) \log(1 - \hat{m}_{j,t}) \right]
+\end{equation}
+其中，$m_{j,t} \in \{0, 1\}$ 为真值标签，表示第$j$个实例在第$t$帧的动作是否存在；$\hat{m}_{j,t}$ 为模型输出的动作存在概率。
+
+而辅助损失则同样采用的焦点损失作为辅助分类损失，用于监督动作感知模块（AAM）中动作感知查询的学习，可表示为：
+\begin{equation}
+    \mathcal{L}_{aux} = \lambda_{class}^{aux} \mathcal{L}_{class}^{aux}
+\end{equation}
+最终，AGCM的总训练损失定义为：
+\begin{equation}
+    \mathcal{L}_{total} = \mathcal{L}_{main} + \mathcal{L}_{aux}
+\end{equation}
+
+（2）匹配机制
+
+AGCM采用和基线方法相同的样本匹配机制，对模型输出的固定数量的动作管预测 $\hat{y} = \{\hat{y}_j\}_{j=1}^{N}$，
+通过匈牙利匹配算法（Hungarian Match Algorithm），在预测集合与真实动作集合 $y = \{y_i\}_{i=1}^{M}$ 之间构建最优二分图匹配。
+匹配代价综合考量了类别预测准确性、空间位置回归精度以及时序对齐质量。对于第 $i$ 个真值和第 $j$ 个预测，其匹配代价定义为：
+\begin{equation}
+    \mathcal{L}_{match} = \lambda_{class}  \mathcal{L}_{class} + \lambda_{box} \mathcal{L}_{box} + \lambda_{giou} \mathcal{L}_{giou}
+\end{equation}
+最终，通过最小化总匹配代价获得最优映射$\hat{\sigma}$，并据此计算上述训练损失。
+\section{实验结果与分析}
+\subsection{实验设置}
+
+本章的所有实验均在JHMDB、UCF101-24和Multisports数据集上进行评估，以验证所提方法在复杂体育场景下的
+时空动作检测性能。模型使用PyTorch 2.1.0和Python 3.8实现，并在GeForce RTX 4090 GPU上完成，
+为了对比公平，所有的对比模型使用3D CNN的CSN152预训练模型作为视觉特征提取器，它们均在Kinetics-700
+数据集上进行了预训练，模型处理帧数$T = 32$，输入视频片段的短边被resize为256。
+查询向量的数量$N$设定为32，每个动作管查询在各时间步上的采样点$n$设置为32。查询向量的维度$D_q$
+设定为256。在动作解码器中堆叠了$k=6$层解码器层。模型使用AdamW优化器，权重衰减设为0.01，
+骨干网络的初始学习率设为$1\text{e-}5$，解码器的初始学习率设为$1\text{e-}6$。
+在训练阶段，采用了颜色抖动、随机裁剪和水平翻转等数据增强策略。
+损失函数的权重配置如下：
+
+$\lambda_{class}=4$，$\lambda_{box}=1$，$\lambda_{giou}=1$，$\lambda_{tempmask}=1$，$\lambda_{class}^{aux}=0.25$。
+
+实验使用frame-mAP和video-mAP作为性能评价指标，并在通过误差分析综合评估模型，
+各指标的具体计算方式见2.5.2节。
+
+\subsection{对比实验结果及分析}
+
+（1） 对比方法的选择
+为了更加全面地评估本章提出方法的有效性，本节将提出的ISCM与当前主流的时空动作检测方法进行了广泛的对比实验，
+在对比方法中，选择了当前最先进的双阶段方法和单阶段方法进行对比。
+
+对于双阶段方法，本节选择了HIT和TAAD作为对比对象，HIT使用ResNet-50作为骨干网络的Fast-RCNN目标检测器获取人体检测框，
+并定位运动员的手部区域，通过增强人体和手部信息的关系建模增强模型的动作理解能力；
+TAAD利用YOLOv5对逐帧进行人体检测，并结合预训练的行人重识别模型OsNet以及跟踪算法deepsort获得动作管候选，在此基础上判断动作的类别。
+对于单阶段方法，本节选择了YOWOv3、SAMOC、TubeR、STMixer、STAR和ART作为对比对象。其中，YOWOv3和SAMOC是
+基于候选锚框设计的单阶段时空动作检测方法，YOWOv3通过深度整合卷积和自注意力机制，在通道维度上对2D和3D特征进行混合，
+实现了高效的特征融合，SAMOC通过引入运动分支实现了候选框在时间维度上的扩展，并通过跟踪分支加强了帧间的一致性建模。
+Tuber、STMixer和STAR则均是基于查询的单阶段时空动作检测方法，与本章方法采用同样的模型范式，其中，Tuber
+可以视为此类方法的基准模型，其关键设计在于动作管级的查询设置和正交时空自注意力，将基于查询的范式成功引入到时空动作检测
+任务中；STMixer则是面向稀疏时空动作检测，每次推理仅预测关键帧的结果，通过设计一种4D特征空间采样方法，将多尺度
+时空特征图通过双线性插值进行扩展，可以更加高效地进行时空特征采样；STAR则是在动作解码器中设计了正交时空注意力模块，
+每个动作管查询仅仅与对应时间步的特征图进行交叉注意力计算，在减少计算量的基础上减少了时序信息对空间定位的干扰；
+ART则是通过设计运动员相关的查询生成模块，通过关键帧中人体检测框提取运动员特征，并将其注入到动作管查询中，引导
+模型关注与运动员高度相关的时空区域。
+
+（2）定量对比实验结果
+本节将ISCM在JHMDB51-24、UCF101-24和Multisports三个常用的基准数据集上与这些方法进行了对比实验，以验证所提方法
+在复杂体育场景下的时空动作检测性能。其中，黑体字部分表示在各项指标上取得的最佳结果，下横线表示在该组对比中次优的结果。
+表格中绘制$*$表示该模型进行了本地训练评估，未绘制$*$表示结果来源于原论文公布的结果。
 
 \begin{table}[htbp]
-  \centering
-  \caption{表格示例}
-    \begin{tabular}{ccccc}
-    \toprule
-    Aaa & Bbb & Ccc & Ddd & Eee \\
-    \midrule
-    1-1  & 1-2  & 1-3 & 1-4 & 1-5 \\
-    2-1  & 2-2  & 2-3 & 2-4 & 2-5 \\
-    3-1  & 3-2  & 3-3 & 3-4 & 3-5 \\
-    4-1  & 4-2  & 4-3 & 4-4 & 4-5 \\
-    \bottomrule
-    \end{tabular}%
-  \label{Tab4-1}%
-\end{table}%
+    \centering
+    \caption{JHMDB51-21数据集上的定量对比结果}
+    \label{tab:JHMDB51-21_2}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{4pt} % 稍微加宽一点点间距
+    
+    % 【关键修改】改为 6 个 c，对应 6 列数据
+    \begin{tabular}{c c c ccc c} 
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{\textbf{方法}} &  
+        \multirow{2}{*}{\textbf{检测器}} &  
+        \multirow{2}{*}{\textbf{frame-mAP}} & 
+        \multicolumn{3}{c}{\textbf{video-mAP}}        \\ 
+        
+        % 表头横线 (跨越第3到第5列)
+        \cmidrule(lr){4-6} 
+        
+        % --- 表头第二行 ---
+        & & &\textbf{@0.2} & \textbf{@0.5} & \textbf{0.50:0.95} & \\ 
+        \midrule
+    
+        TAAD   &YOLO-v5    & -    & -    & 82.8 & 56.4 \\
+        HIT    &fast-RCNN  & 83.8 & 89.7 & 88.1 & -    \\
+        \midrule % 【修改点1】在 TubeR 后面加的横线
+        YOWOv3  &-    & 73.1 & 79.2 & 78.3 & 58.7 \\
+        SAMOC  &-    & 73.1 & 79.2 & 78.3 & 58.7 \\
+        TubeR  &-    & 84.2 & 87.3 & 83.3 & 59.4 \\
+        STMixer&-    & 85.1 & 88.1 & 84.0 & 60.2 \\
+        STAR   &-    & 86.9 & 89.5 & 88.2 & -    \\
+        ART   &-    & 86.9 & 89.5 & 88.2 & -    \\
+        \midrule % 【修改点2】在 Ours 前面加的横线 (原代码已有，保留即可)
+        Ours   &CSN-152& \textbf{88.3} & \textbf{90.3} & \textbf{89.5} & \textbf{60.9} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-一般情况下，表应放在文字的下面，有时依据排版的需要，也可以放在文字上方。但无论如何，图应尽量与文字靠近。
-
-\begin{enumerate}
-    \item[(1)] 表格序号按“章”进行编号，如第3章第1个表为“表3-1”，以此类推。
-    \item[(2)] 表格内容与正文配合应相得益彰，内容适合用表表达。
-    \item[(3)] 表格应具有自明性和简明性，栏目设置应科学。
-    \item[(4)] 表格中的数据应具有完整性和准确性。
-    \item[(5)] 表格中连续数的分组应科学，不得重叠和遗漏。
-    \item[(6)] 表格中的数值修约和极原数值的书写应符合GB/T 8170的规定。
-    \item[(7)] 表格中的量和单位的名称、符号及书写应符合国家标准GB3100～3102—93量和单位的系列标准和相关行业标准。
-    \item[(8)] 表格中数字形式的使用应符合GB/T 15835规定。
-    \item[(9)] 表格中的科学技术名词应符合CVT 119的规定。
-    \item[(10)] 表格中的术语、数值、符号等应与正文以及同一文本中其他表格中的表述一致。
-    \item[(11)] 全书的表格的表号、表题，表头、表身、表注的格式应统一。
-\end{enumerate}
-
-\section{名词、术语}
-
-学位论文存在大量的专业名词与专业术语，针对同一内容的名字、术语有多种表达方式时，原则上以关系最为密切的学科为准，并尽量符合最新的国家或行业规程、规范。若属全国科学技术名词审定委员会最新公布的各类学科的“名词”，则须严格执行，且在全文中统一。
-
-外国专有名称在释文中首次出现时，应附原文和简称。例如：“美国垦务局（United States Bureau of Reclamati，USBR）”、“美国大坝委员会（United States Committee On Large Dams，USCOLD）”。在同一条目中再次出现时可采用中文或英文缩写。
-
-
-\section{符号、单位的使用}
-标点符号的使用，应符合国家标准GB／T 15834—2011《标点符号用法》。
-\begin{enumerate}
-    \item[(1)] 论文中的计量单位应采用法定计量单位（简称法定单位），应符合国家标准GB 3100～3102—93量和单位的系列标准和相关行业标准。
-    \item[(2)] 表格及插图中，使用单位符号，不使用单位名称和单位中文符号。叙述性文字中，优先使用单位符号。必要时，可使用单位名称，但不可使用单位中文符号。如：流量为11400
-    \item[(3)] 两个物理量（量值加单位）在表示范围时，两个量值用波浪线“～”连接后使用一个计量单位，如：应写作800～1500 m3/s，而不写作800m3/s～1500 m3/s。
-\end{enumerate}
-
-
-\section{数字的使用}
-
-数字的使用应符合国家标准GB/T15838—2011《出版物上数字用法》，同时应符合相关行业标准。
-
-以下情况应使用阿拉伯数字：
-\begin{enumerate}
-    \item[(1)] 统计表中的数值，如：正负整数、小数、百分数、分数、比例。
-    \item[(2)] 物理量量值，如：150 m3/s，200 kg，注意数量与单位之间应有空格。
-    \item[(3)] 非物理量量值。如：21.35元，480人。
-    \item[(4)] 当阿拉伯数字与汉字数字混用时，要顾及上下行文的协调一致。
-    \item[(5)] 两个百分数表示范围时，要使用两个百分号，如15%～20%，不可写成15～20%。
-    \item[(6)] 专业性科技出版物上的多位数字，应从小数点算起，每三位留空半个数码位置，不采用传统的以千位撇“，”分节的办法，如3800000应写成3 800 000，或写成380万，而不要写成3，800，000。
-\end{enumerate}
-
-以下情况应使用汉字数字：
-\begin{enumerate}
-    \item[(1)] 定型的词、词组、成语、惯用语或具有修辞色彩的词语中作为词素的数字。如：星期六、四氧化三铁、五省一市、“八五”计划、第三季度等。
-    \item[(2)] 相邻两个数字并列连用表示概数，连用的两个数字间不得用顿号“、”隔开。如：二三米、十三四吨、一千七八百元。
-    \item[(3)] 不是出现在具有统计意义的一组数字中的整数一至十。如：一个人、三本书、五个百分点等。
-    \item[(4)] 带有“几”的数字，表示概数。如：十几天、几千年等。
-\end{enumerate}
-
-\section{其它应该注意的问题}
-
-\subsection{关于文献引用}
-
-在学位论文撰写中，凡是文字、图、表来自于参考文献的，必须要加注文献信息。国际惯例：与他人文章有20个字连续雷同的就是抄袭。抄袭是必须严禁的行为，否则害人害己。建议大家最好用自己的理解来撰写相关内容，特别是第一章绪论中更应注意。
-
-在引用参考文献时，不要将文献标识直接写在某一小节的标题上，这将被视为整节内容都是引用；如有某几句话完全来自文献的，则在这部分内容的最后一句的结束加文献标注。
-
-在课题组内部，经常出现多位同学做相近的课题，或课题的关联性较大。每个学生介绍研究背景或实验室材料与方法时，请尽可能用自己理解后的语句去撰写，以避免雷同，千万不要图省事将前一届学生的论文大段地照搬过来。有些图若是能自己画的，最好自己重新画一遍，以示区分。
-
-\textcolor{red}{硕士学位申请人的文献阅读量一般不少于40篇，其中外文文献一般不少于1/3；近五年的论文一般不少于1/3；绪论部分应对所读文献加以分析和综合。}
-
-参考文献格式
-
-中文书刊：作者按中文写法，姓在前、名在后；英文书刊：作者按英文习惯写法，如名在前、姓在后，名用首字母缩写、姓用全称。一般6人以内须列出全部作者，6人以上写6人再加“等”（英文加“et al”））。每个参考文献的最后不加标点符号。
-
-（1）图书：最多列出6个作者，作者与作者之间用逗号分隔. 书名. 版本（第×版）. 译者. 出版地: 出版者, 出版年. 起页-止页（可选）
-
-（2）期刊：最多列出6个作者，作者与作者之间用逗号分隔. 文章名. 期刊名（全称）. 年号, 卷号（期号）: 起页-止页或论文编号
-
-（3）会议论文集：最多列出6个作者，作者之间用逗号分隔. 文章名. 见（英文用“in”）：会议名称（或论文集）. 会议城市, 国家, 会议时间, 出版者, 出版年: 起页-止页
-
-（4）专利：专利申请者. 专利题名. 专利国别, 专利文献种类, 专利号, 出版年
-
-（5）学位论文：作者. 题名：[博士（或硕士）学位论文]. 保存地点: 保存单位（如华中科技大学, 年份）
-
-参考文献（举例）
-\begin{enumerate}
-\renewcommand{\labelenumi}{[\theenumi]}
-\item	闫明礼, 张东刚. CFG桩复合地基技术及工程实践（第二版）. 北京: 中国水利水电出版社, 2006
-
-\item	M. Chalfie, S. R. Kain. Green fluorescent protein: properties, applications, and protocols. Hoboken, New Jersey: Wiley-interscience, 1998
-
-\item	詹向红, 李德新. 中医药防治阿尔茨海默病实验研究述要. 中华中医药学刊, 2004, 22(11): 2094-2096
-
-\item	E. S. Lein, M. J. Hawrylycz, N. Ao, M. Ayres, A. Bensinger, A. Bernard, et al. Genome-wide atlas of gene expression in the adult mouse brain. Nature, 2007, 445(7124): 168-176
-
-\item	M. L. Bouxsein, S. K. Boyd, B. A. Christiansen, R. E. Guldberg, K. J. Jepsen, R. Müller. Guidelines for assessment of bone microstructure in rodents using micro–computed tomography. Journal of Bone and Mineral Research, 2010, 25(7): 1468-1486
-
-\item	Y. Shunsuke, A. Masahide, K. Masayuki, M. Yoshizawa. Performance evaluation of phase-only correlation functions from the viewpoint of correlation Filters, in: 2018 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA ASC), Honolulu, HI, USA, 12-15 Nov. 2018, Proceedings of the IEEE, 2019: 1361-1364
-
-\item	T. Yao, J. Wan, P. Huang, X. He, F. Wu, C. Xie. Building efficient key-value stores via a lightweight compaction tree. ACM Transactions on Storage, 2017, 13(4): 1-28
-
-\item	刘加林. 多功能一次性压舌板: 中国, ZL92214985. 2 [P]. 1993
-
-\item	李清泉. 基于混合数据结构的三维GIS数据模型与空间分析研究[博士学位论文]. 武汉: 武汉测绘科技大学, 1998
-
-\end{enumerate}
-
-注释体例的基本内容、结构与位置
-
-（1）基本内容与结构
-
-“注释体例”含“资料性注释”和“内容性注释”两方面，合一编排。
-
-（2）位置
-
-正文内需注释之处依次排注号，释文于当页下部逐条依次编排。可在正文和页下注之间划一道分隔线，或通过不同的字体将二者区分开来。
-
-（3）排版
-
-【字体】中文：小五，宋体；英文：times new roman 9号字体；
-
-【行距】单倍行距；
-
-【段落】顶格写，无首行缩进，也无左缩进；
-
-【序号】用①这种格式，序号后空一个字符，每页重新编序；
-
-【页码】中文：第х-х页，如 第16-17页。英文：pp.х~х，如pp.5~8, 单页用pх，如p19.
-
-【标点符号】中文使用中文状态下标点符号，英文使用英文状态下标点符号，切忌混用。
-
-\textcolor{red}{以下是几个例子, 注意, 中文参考文献需要额外增加一个 lang="chinese"}
-~\\
-期刊论文举例：
-
-Pan等人提出了一种全新的算法\cite{pan2018classification, pan2014cell, song2013asynchronous, lin2022adaptive}。
-
-~\\
-会议论文举例：
-
-XXXXxx\cite{li2021large}
-
-~\\
-图书举例：
-
-xxxxxx\cite{shavlik1990readings, yan2006CFG}
-
-~\\
-学位论文举例：
-
-xxxxxx\cite{jxd1996, CCPT}
+\begin{table}[htbp]
+    \centering
+    \caption{UCF101-24数据集上的定量对比结果}
+    \label{tab:ucf_2}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{4pt} % 稍微加宽一点点间距
+    
+    % 【关键修改】改为 6 个 c，对应 6 列数据
+    \begin{tabular}{c c c ccc } 
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{\textbf{方法}} &  
+        \multirow{2}{*}{\textbf{视频特征提取}} &  
+        \multirow{2}{*}{\textbf{frame-mAP}} & 
+        \multicolumn{3}{c}{\textbf{video-mAP}} \\ 
+        
+        % 表头横线 (跨越第3到第5列)
+        \cmidrule(lr){4-6} 
+        
+        % --- 表头第二行 ---
+        & & &\textbf{@0.2} & \textbf{@0.5} & \textbf{0.50:0.95} \\ 
+        \midrule
+    
+        TAAD    &CSN-152    & -    & 85.6 & 59.4 & 29.1  \\
+        HIT    &SlowFast-50& 84.8 & 88.8 & 74.3 & -    \\
+        \midrule % 【修改点1】在 TubeR 后面加的横线
+        YOWOv3  &-    & 73.1 & 79.2 & 78.3 & 58.7 \\
+        SAMOC  &DLA-34     & 73.1 & 79.2 & 78.3 & 58.7  \\
+        TubeR  &CSN-152    & 83.2 & 83.3 & 58.4 & 28.9  \\
+        STMixer&SlowFast-50& 84.1 & 90.1 & 89.0 & 60.2  \\
+        STAR   &CSN-152    & 86.7 & 87.0 & 65.4 & 30.6   \\
+        ART   &-    & 86.9 & 89.5 & 88.2 & -    \\
+        \midrule % 【修改点2】在 Ours 前面加的横线 (原代码已有，保留即可)
+        Ours &SlowFast-50& \textbf{88.4} & \textbf{83.3} & \textbf{87.3} & \textbf{67.6}  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 
+\begin{table}[htbp]
+    \centering
+    \caption{Multisports数据集上的定量对比结果}
+    \label{tab:Multisports_2}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{4pt} % 稍微加宽一点点间距
+    
+    % 【关键修改】改为 6 个 c，对应 6 列数据
+    \begin{tabular}{c c c ccc } 
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{\textbf{方法}} &  
+        \multirow{2}{*}{\textbf{视频特征提取}} &  
+        \multirow{2}{*}{\textbf{frame-mAP}} & 
+        \multicolumn{3}{c}{\textbf{video-mAP}}
+        \\ 
+        
+        % 表头横线 (跨越第3到第5列)
+        \cmidrule(lr){4-6} 
+        
+        % --- 表头第二行 ---
+        & & &\textbf{@0.2} & \textbf{@0.5} & \textbf{0.50:0.95} \\ 
+        \midrule
+        TAAD    &SlowFast-50& -    & 62.8 & 36.0 & -  \\
+        HIT    &SlowFast-50& 33.3 & 27.8 & 8.8 & -   \\
+        \midrule % 【修改点1】在 TubeR 后面加的横线
+        YOWOv3  &-    & 73.1 & 79.2 & 78.3 & 58.7 \\
+        SAMOC  &DLA-34     & 31.5 & 16.5 & 8.9 & -\\
+        TubeR  &SlowFast-50& - & 59.4 & 31.7 & -  \\
+        STMixer&SlowFast-101& 50.4 & 57.7 & 35.2 & -  \\
+        STAR   &CSN-152    & 45.4& 50.1 & 18.6 & -     \\
+        ART   &-    & 86.9 & 89.5 & 88.2 & -    \\
+        \midrule % 【修改点2】在 Ours 前面加的横线 (原代码已有，保留即可)
+        Ours   &SlowFast-50& \textbf{88.4} & \textbf{83.3} & \textbf{87.3} & \textbf{67.6} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+根据表格中的结果可以看出，ISCM在三个数据集上均取得了一致性的性能提升，相比而言，ISCM在JHMDB51-21数据集上
+相对次优的结果frame-mAP提升了1.4\%，video-mAP@0.2,video-mAP@0.5提升了1.2\%,video-mAP@0.50:0.95提升
+了0.7\%；在UCF101-24数据集上，ISCM相对次优的结果frame-mAP提升了1.7\%，video-mAP@0.2提升了2.3\%，
+video-mAP@0.5提升了12.9\%，video-mAP@0.50:0.95提升了7.0\%；在Multisports数据集上，ISCM的frame-mAP提升了
+3.0\%，video-mAP@0.2提升了5.2\%，video-mAP@0.5提升了18.7\%，video-mAP@0.50:0.95提升了7.4\%。
+对于数据集间表现的差异，可以从运动剧烈程度和场景复杂度来看，JHMDB51-21数据集中的动作相对较为简单，运动幅度和遮挡情况
+较少，ISCM在该数据集上提升相对有限，而UCF101-24和Multisports数据集包含了更多复杂的体育动作和多样化的场景，
+这一点第2章数据集分析部分已有详细说明。
+对于不同方法直接的差异，可以从模型范式的特点来看，基于候选框的单阶段方法YOWOv3和SAMOC虽然通过设计3维锚框来端到端
+的时空动作检测，但是形状固定的锚框在处理复杂运动和遮挡时存在局限性，导致其性能相对较低，尤其是在UCF101-24和Multisports
+数据集上表现不佳。而带有额外检测器的双阶段方法TAAD和HIT的表现则优于基于锚框的方法，但由于其依赖于预训练的检测器，
+且未能充分利用时空上下文信息，对于复杂动作的时空边界定位仍存在不足。相比之下，基于查询的单阶段方法如Tuber、STMixer、
+STAR和ART的表现更好。
+但是，不同于Tuber、STMixer和STAR
+的动作管查询仅仅通过随机初始化获得，从物理含义上说，这些动作管查询其实也相当于一种预设的锚框，限制了模型对复杂运动的适应性。
+ART虽然通过运动员相关的查询生成模块引入了运动员特征，但运动员的外观信息并不能完全反映动作的动态变化，所提供的先验信息
+属实有限，而ISCM通过对视频实例进行感知，直接将动作实例的信息注入到动作管查询中，使得每个查询都能够动态地适应当前视频中的复杂运动。
+
+下图表示的是ISCM和Tuber在JHMDB51-21、UCF101-24和Multisports数据集上，各个动作类别的video-mAP@20的对比结果。
+从图中可以看出ISCM在复杂运动场景下，能够更准确地定位动作的时空边界，并且在处理快速运动和遮挡等挑战时表现出更强的鲁棒性。
+
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/output_chart_beautiful.png}
+    \caption{test1}\label{Fig4-6}
+\end{figure}
+
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/output_chart_beautiful.png}
+    \caption{test2}\label{Fig4-7}
+\end{figure}
+
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/output_chart_beautiful.png}
+    \caption{test3}\label{Fig4-8}
+\end{figure}
+
+\subsection{消融实验结果}
+
+为了进一步评估所提出方法的有效性，本节在UCF101-24和Multisports数据集上进行了消融实验，
+具体评估了ISCM中各个模块对整体性能的贡献。基线模型为不包含ISCM的Tuber模型，主要评估了
+时空动作感知模块（TAM）、正交自适应采样模块（）以及解耦时空注意力模块（DSTA）。
+为了加强对比的说服力，本节分别将各个模块替换为对应的对比设计，具体来说：
+对于时空动作感知模块（），本节通过随机初始化的动作管查询替换为由TAM生成的查询向量，但是会
+为动作管查询加入时间位置编码，以补充时序信息，对于正交自适应采样模块（），本节将其替换为固定网格采样，
+采样点的数量同样设置为32；对于解耦时空注意力模块，本节将为标准的时空交叉注意力机制。
+每个消融模型保证训练超参数和数据预处理完全一致，以确保对比的公平性。以下是各个模块的消融实验结果：
+
+\begin{table}[htbp]
+    \centering
+    \caption{在UCF101-24数据集上进行消融实验}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{5pt}
+    % 定义为 7 列 (1 + 3 + 3)
+    \begin{tabular}{ccc c ccc}
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{TAM} & 
+        \multirow{2}{*}{ADSM} & 
+        \multirow{2}{*}{DSTA} & 
+        \multirow{2}{*}{frame-mAP} & 
+        \multicolumn{3}{c}{video-mAP} \\
+        
+        % --- 表头横线 (对应后6列的分组) ---
+        \cmidrule(lr){5-7} 
+        
+        % --- 表头第二行 (修复点：去掉了多余的 & ) ---
+        % 逻辑：跳过Method(1个&) -> Large(第2列) -> ...
+        &&&   & @0.2 & @0.5 & 0.50：0.90 \\
+        \midrule
+
+        B & B & B & 31.2 & 14.2 & 33.6 & 45.1 \\
+        B & B & B & 33.0 & 15.4 & 34.7 & 45.7 \\
+        B & B & B & 34.8 & 16.7 & 35.5 & 47.4 \\
+        B & B & B & 36.0 & \textbf{18.8} & 37.5 & 46.0 \\
+        B & B & B & \textbf{37.0} & 17.9 & \textbf{38.1} & \textbf{47.3} \\
+        \bottomrule % 修复点：补上底线
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{在UCF101-24数据集上进行消融实验}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{5pt}
+    % 定义为 7 列 (1 + 3 + 3)
+    \begin{tabular}{ccc c ccc}
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{TAM} & 
+        \multirow{2}{*}{ADSM} & 
+        \multirow{2}{*}{DSTA} & 
+        \multirow{2}{*}{frame-mAP} & 
+        \multicolumn{3}{c}{video-mAP} \\
+        
+        % --- 表头横线 (对应后6列的分组) ---
+        \cmidrule(lr){5-7} 
+        
+        % --- 表头第二行 (修复点：去掉了多余的 & ) ---
+        % 逻辑：跳过Method(1个&) -> Large(第2列) -> ...
+        &&&   & @0.2 & @0.5 & 0.50：0.90 \\
+        \midrule
+
+        B & B & B & 31.2 & 14.2 & 33.6 & 45.1 \\
+        B & B & B & 33.0 & 15.4 & 34.7 & 45.7 \\
+        B & B & B & 34.8 & 16.7 & 35.5 & 47.4 \\
+        B & B & B & 36.0 & \textbf{18.8} & 37.5 & 46.0 \\
+        B & B & B & \textbf{37.0} & 17.9 & \textbf{38.1} & \textbf{47.3} \\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+
+根据模型在UCF101-24和Multisports数据集上的消融实验结果可以看出，随着各个模块的逐步引入，模型的性能得到了显著提升。
+具体来说，引入时空动作感知模块（TAM）后，模型的frame-mAP提升了1.8\%和1.7\%，
+video-mAP@0.2提升了1.2\%和1.3\%，video-mAP@0.5提升了1.1\%和1.2\%，
+video-mAP@0.50:0.95提升了1.7\%和1.5\%。这表明TAM能够有效地为动作管查询提供与视频内容相关的先验信息，
+从而提升了模型对复杂动作的理解能力。引入正交自适应采样模块（ADSM）后，模型的frame-mAP
+提升了1.8\%和1.6\%，video-mAP@0.2提升了1.3\%和1.2\%，video-mAP@0.5提升了0.8\%和1.0\%，
+video-mAP@0.50:0.95提升了1.6\%和1.4\%。这表明ADSM通过动态调整采样点的位置，更好地捕捉了动作的时空特征，
+从而提升了动作的定位精度。引入解耦时空注意力模块（DSTA）后，模型的frame-mAP
+提升了1.2\%和1.4\%，video-mAP@0.2提升了1.1\%和1.0\%，
+video-mAP@0.5提升了0.6\%和0.8\%，video-mAP@0.50:0.95提升了0.9\%和1.2\%。这表明DSTA通过解耦时空信息，
+提升了模型对时空特征的建模能力，从而进一步提升了动作的检测性能。
 
 
-\subsection{公式}
-公式中主要字母的字号与正文一样（即小四号），尽量避免图片转贴过来的公式。公式编号根据章节按顺序进行编排，如第2章第3个公式，标注为2-3，将公式编号以右对齐方式排列，但注意公式是以居中的格式排列的（类似教材中的通用格式）。
+为了进一步评估所提方法各个模块之间的效果，在UCF101-24和Multisports数据集上将
+测试集样本按照运动强度划分为三个子集，具体划分方式参考TAAD，分别对应小运动、中运动、剧烈运动
+以下是ISAM在各子集上的与现有方法的对比结果：
+\begin{table}[htbp]
+    \centering
+    \caption{在UCF101-24数据集上进行消融实验}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{5pt}
+    % 定义为 7 列 (1 + 3 + 3)
+    \begin{tabular}{ccc ccc ccc}
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{TAM} & 
+        \multirow{2}{*}{ADSM} & 
+        \multirow{2}{*}{DSTA} & 
+        \multicolumn{3}{c}{frame-mAP} & 
+        \multicolumn{3}{c}{video-mAP} \\
+        
+        % --- 表头横线 (对应后6列的分组) ---
+        \cmidrule(lr){4-6} \cmidrule(lr){7-9}
+        
+        % --- 表头第二行 (修复点：去掉了多余的 & ) ---
+        % 逻辑：跳过Method(1个&) -> Large(第2列) -> ...
+        &&&  Small & Medium & Large & Small & Medium & Large \\
+        \midrule
 
-\subsection{本章小结}
-本章主要介绍学位论文写作的规范化要求，包括图、表制作及其与正文的对应关系；专业名词、术语、单位、符号及数字的使用等。
+        B & B & B &49.6  & 54.9 & 31.2 & 14.2 & 33.6 & 45.1 \\
+        B & B & B & 50.6  & 56.3 & 33.0 & 15.4 & 34.7 & 45.7 \\
+        B & B & B  & 53.9 & 57.7 & 34.8 & 16.7 & 35.5 & 47.4 \\
+        B & B & B & 54.4  & 58.4 & 36.0 & \textbf{18.8} & 37.5 & 46.0 \\
+        B & B & B & \textbf{53.4} & \textbf{60.4} & \textbf{37.0} & 17.9 & \textbf{38.1} & \textbf{47.3} \\
+        \bottomrule % 修复点：补上底线
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{在Multisports数据集上进行消融实验}
+    \renewcommand{\arraystretch}{0.9}
+    \setlength{\tabcolsep}{5pt}
+    % 定义为 7 列 (1 + 3 + 3)
+    \begin{tabular}{ccc ccc ccc}
+        \toprule
+        % --- 表头第一行 ---
+        \multirow{2}{*}{TAM} & 
+        \multirow{2}{*}{ADSM} & 
+        \multirow{2}{*}{DSTA} & 
+        \multicolumn{3}{c}{frame-mAP} & 
+        \multicolumn{3}{c}{video-mAP} \\
+        
+        % --- 表头横线 (对应后6列的分组) ---
+        \cmidrule(lr){4-6} \cmidrule(lr){7-9}
+        
+        % --- 表头第二行 (修复点：去掉了多余的 & ) ---
+        % 逻辑：跳过Method(1个&) -> Large(第2列) -> ...
+        &&&  Small & Medium &Large & Small & Medium & Large \\
+        \midrule
+
+        B & B & B &49.6  & 54.9 & 31.2 & 14.2 & 33.6 & 45.1 \\
+        B & B & B & 50.6  & 56.3 & 33.0 & 15.4 & 34.7 & 45.7 \\
+        B & B & B  & 53.9 & 57.7 & 34.8 & 16.7 & 35.5 & 47.4 \\
+        B & B & B & 54.4  & 58.4 & 36.0 & \textbf{18.8} & 37.5 & 46.0 \\
+        B & B & B & \textbf{53.4} & \textbf{60.4} & \textbf{37.0} & 17.9 & \textbf{38.1} & \textbf{47.3} \\
+        \bottomrule % 修复点：补上底线
+    \end{tabular}
+\end{table}
+
+根据表格中的结果可以看出，随着各个模块的逐步引入，模型在不同运动强度子集上的性能均得到了显著提升。
+具体来说，引入时空动作感知模块（TAM）后，模型在小运动、中运动和剧烈运动子集上的frame-mAP分别提升了
+1.0\%、1.4\%和1.8\%，video-mAP分别提升了1.2\%、1.1\%和1.1\%。这表明TAM能够有效地为动作管查询提供与视频内容相关的先验信息，
+从而提升了模型对复杂动作的理解能力。引入正交自适应采样模块（ADSM）后，模型在小运动、中运动和剧烈运动
+子集上的frame-mAP分别提升了3.3\%、1.4\%和1.8\%，video-mAP分别提升了1.3\%、0.8\%和1.0\%。这表明ADSM通过动态调整采样点的位置，
+更好地捕捉了动作的时空特征，从而提升了动作的定位精度。引入解耦时空注意力模块（DSTA）后，模型在小运动、中运动和剧烈运动
+子集上的frame-mAP分别提升了0.5\%、1.7\%和1.0\%，video-mAP分别提升了1.1\%、0.6\%和0.8\%。这表明DSTA通过解耦时空信息，
+提升了模型对时空特征的建模能力，从而进一步提升了动作的检测性能。
+且对于剧烈运动子集上的提升尤为显著，表明所提方法在处理复杂运动场景下具有较强的适应性和鲁棒性。
+
+\subsection{可视化分析}
+为了进一步说明所提出的模块的有效性，本节对ISCM在UCF101-24和Multisports数据集上的进行可视化分析，具体
+包括时空动作感知模块（TAM）生成的动作管查询的可视化结果，以及正交自适应采样模块（ADSM）采样点位置的可视化结果。
+
+对于时空动作感知模块（TAM），本节将生成的动作管查询
+
+
+
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/微信图片_20260129231354.png}
+    \caption{test4}\label{Fig4-9}
+\end{figure}
+
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/微信图片_20260129231354.png}
+    \caption{test4}\label{Fig4-9}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering\includegraphics[width=0.9\textwidth]{figures/微信图片_20260129231354.png}
+    \caption{test4}\label{Fig4-9}
+\end{figure}
+
+
+
+
+\section{本章小结}
+
+
 
 
 

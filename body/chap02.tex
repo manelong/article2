@@ -12,48 +12,47 @@
 \label{sec:cover}
 本章首先明确了时空动作检测的任务定义，说明其相比于动作检测和时序动作检测任务的优势与
 挑战，阐释了其在视频中实现分类、时序定位和空间定位的任务目标（第2.1节）。随后，
-本章分析了现有视频特征提取方法的常用基础模型，并说明了其各自优缺点（第2.2节）。然后，基
-于现有的检测方法范式，本章分析了双阶段检测范式和单阶段检测范式各自的优势，并重点
-说明了基于查询机制的动作检测器的理论基础和其在时空动作检测任务中的使用（第2.3节）。最后，
-本章对相关领域的基准数据集和评价指标进行了介绍（第2.4节），并具体分析了体育场景下的时空动作检测
+本章介绍了现有视频特征提取方法（第2.2节）。然后，基于现有的检测范式，本章分析重点基于
+查询机制的动作检测器的理论基础和相关方法（第2.3节）。最后，本章对相关领域的基准数据集和
+评价指标进行了介绍（第2.4节），并具体分析了体育场景下的时空动作检测
 的难点（第2.5节），并对本章内容进行了总结（第2.6节）。
 
 \section{时空动作检测任务定义}
 \label{sec:font}
 
-从任务目标来看，时空动作检测是动作分类和时序动作检测的进一步延伸。动作检测任务主要关注对
+从任务目标来看，时空动作检测是动作识别和时序动作检测的进一步延伸。动作识别任务是对
 一段指定视频数据中所包含的动作类别进行分类，通常假设视频数据已经经过剪辑处理，确保
-视频中仅包含单一动作类别的信息，因此动作检测任务的主要目标是识别视频中所包含的动作类别。
-时序动作检测任务则进一步要求模型不仅能够识别视频中的动作类别，还需要对动作发生的时间段进
-行定位，即确定动作的起始时间和结束时间。然而，时空动作检测任务在两者的基础上更进一步，通常
-处理的是未经剪辑的长视频数据，视频中可能包含多个动作类别，并且这些动作可能在时间和空间上交织
-在一起。因此，时空动作检测任务的目标不仅包括动作分类和时序定位，还需要实现对动作在空间维度的
-定位出特定的运动动作片段。
+视频中仅包含单一动作类别的信息。时序动作检测任务则进一步要求模型不仅能够识别视频中的
+动作类别，还需要对动作发生的时间段进行定位，即确定动作的起始时间和结束时间。然而，时空
+动作检测任务在两者的基础上更进一步，通常处理的是未经剪辑的长视频数据，视频中可能包含
+多个动作类别，并且这些动作可能在时间和空间上交织在一起。因此，时空动作检测任务的目标
+不仅包括动作分类和时序定位，还需要实现对动作在空间维度的定位出特定的运动动作片段。
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\textwidth]{figures/动作检测、时序动作检测、时空动作检测任务定义_2-1.png}
+    \includegraphics[width=0.8\textwidth]{figures/动作检测、时序动作检测、时空动作检测任务定义_2-1.png}
     \caption{时空动作检测任务目标：从未剪辑视频中获取完成动作分类、时间定位和空间定位}\label{Fig2-1}
 \end{figure}
 
-具体来说，为了统一表达，假设视频序列为 $V = \{I_t\}_{t=1}^{T}$，动作类别集合为 $\mathcal{C}$。对于动作检测来说
-动作识别任务目标是判定整段（或已剪辑好的）视频所属的类别，不涉及具体的时间定位和空间定位。
+具体来说，为了统一表达，假设视频序列为 $V = \{I_t\}_{t=1}^{T}$，动作类别集合为 $\mathcal{C}$，
+动作识别的任务目标是判定整段视频所属的类别，不涉及具体的时间定位和空间定位。
 \begin{equation}
     \Phi{(V)} = c_i
 \end{equation}
-其中 $c_i \in \mathcal{C}$。
-对于时序动作检测任务目标是确定输入视频片段中动作发生的时间范围（何时发生）以及动作类别。
+其中 $c_i \in \mathcal{C}$ 是动作标签。
+
+时序动作检测的任务目标则是确定输入视频片段中动作发生的时间范围（何时发生）以及动作类别，如下所示：
 \begin{equation}
     \Phi{(V)} = (c_i, t_b, t_e)
 \end{equation}
 其中 $t_b$ 为开始帧，$t_e$ 为结束帧。
-时空动作检测根据图中的定义，该任务需要同时确定动作的类别、时间范围以及每一帧中的空间位置（何处发生）。
+
+而时空动作检测的任务目标是需要同时确定动作的类别、时间范围以及每一帧中的空间位置（何处发生）。
 \begin{align}
     \Phi{(V)} &= \left( c_i, \{R_t^i\}_{t=t_b}^{t_e} \right) \\
     \{R_t^i\}_{t=t_b}^{t_e} &= \{ (x_{min}, y_{min}, x_{max}, y_{max})_t \mid t \in [t_b, t_e] \}
 \end{align}
-其中 $c_i \in \mathcal{C}$ 是动作标签，$\{R_t^i\}$ 是从开始时间 $t_b$ 到结束时间 $t_e$ 每一帧图
-像 $I_t$ 中对应的边界框或区域集合。
+$\{R_t^i\}$ 是从开始时间 $t_b$ 到结束时间 $t_e$ 每一帧图像 $I_t$ 中对应的边界框或区域集合。
 
 在图\ref{Fig2-1} 具体展示了时空动作检测相比于动作检测和时序动作检测的任务目标的区别。根据任务目标的差异，可以看出时空动作检测
 相较于动作检测和时序动作检测具有更高的复杂性和挑战性，需要模型具备更强的时空理解能力和精确的定位能力，
@@ -76,28 +75,335 @@
 \end{table}
 
 \section{视频特征提取方法}
-动作识别、时序动作检测、时空动作检测这三者的核心均依赖于对视频数据中
-时空特征的提取与建模。时空特征融合了视频的空间信息（如目标姿态、场景布局）
-与时间信息（如运动轨迹、动态演变），为不同任务提供基础表征。尽管任务的目
-标各异，这些方法常共享相同的骨干网络，本小节将从 3D CNN 和 Vision 
-Transformer 两大主流框架介绍视频特征提取方法的具体原理。 
+对视频数据中时空特征的提取与建模直接影响到时空动作检测模型的效果和性能，视频的
+时空特征包含空间信息（环境场景、人员外观等）与时序信息（运动特征、演变信息等）。
+近些年，3D卷积基础模型（C3D\cite{c3d}、CSN）和基于Transformer基础模型（Timesformer、ViViT）
+逐渐已成为主流的视频特征提取模型，随着多模态大模型的兴起，基于视频-文本预训练模型
+（LLaVA-Video，Qwen-vl）的视频特征提取方法也逐渐受到关注。本节将介绍这些方法的基本原理和特点。
+
+\subsection{基于3D卷积的视频特征提取器}
+% 传统的基于2D卷积已经在图像任务中取得了显著的成果，但是在视频任务中，2D卷积只能捕捉
+% 空间信息，无法有效建模时间维度的信息，
+虽然有一些基于2D卷积的方法（MOC\cite{moc}、TSM\cite{tsm}）通过在时间维度堆叠
+特征图辅以时序信息提取模块来捕捉时序信息，但是这些方法对时空信息的挖掘通常存在局限。
+3D卷积能够在空间和时间维度上同时进行卷积操作，从而捕捉视频中的时空特征，
+因此，通过引入3D卷积核来同时处理空间和时间维度的信息成为一种解决方案。
 
 
-\section{时空动作检测方法范式}
+C3D（Convolutional 3D）是视频理解领域的开创性模型之一，它确立了将 $3 \times 3 \times 3$ 的
+3D卷积核作为时空特征学习的基本计算单元，证明了3D卷积网络能够同时从视频中学习空间和时序特征。
+具体来说，对于输入视频片段 $X \in \mathbb{R}^{C_{in} \times T \times H \times W}$ 和3D卷
+积核 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k \times k \times k}$，其中 $C_{in}$ 
+表示输入通道数，$C_{out}$ 表示输出通道数，$k$ 为卷积核的空间与时间尺寸，$T, H, W$ 分别表示时间
+帧数、高度和宽度。在进行特征提取时，标准3D卷积核将在输入特征图上滑动，输出特征
+图 $Y \in \mathbb{R}^{C_{out} \times t \times h \times w}$。其第 $c_{out}$ 个输出通道在
+位置 $(t, h, w)$ 的元素计算公式为：
+\begin{equation}
+    Y_{c_{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{c_{out}, c_{in}, i, j, l} \cdot X_{c_{in}, t+i, h+j, w+l} + b_{c_{out}}
+\end{equation}
+完成一次该操作，其总计算量（FLOPs）约为 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$。
 
-\subsection{双阶段时空动作检测方法}
-控制器设计的详细叙述……
+为了降低计算复杂度并减轻过拟合，CSN（Channel-Separated Convolutional Networks）引入了分组卷
+积的思想，将标准的 $k \times k \times k$ 3D卷积分解为逐点卷积（Pointwise Convolution）和深度卷
+积（Depthwise Convolution）。首先，利用 $1 \times 1 \times 1$ 的逐点卷积核 
+$W_{pw} \in \mathbb{R}^{C_{out} \times C_{in} \times 1 \times 1 \times 1}$ 进行通道维度
+的信息融合（Channel Interaction）。该步骤不涉及相邻时空信息的聚合，计算公式为：
+\begin{equation}
+    Y'{c{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} W_{pw, c_{out}, c_{in}} \cdot X_{c_{in}, t, h, w} + b_{c_{out}}
+\end{equation}
+随后，为了捕获时空特征，CSN 使用深度卷积。深度卷
+积核 $W_{dw}$ 的维度为 $C_{out} \times 1 \times k \times k \times k$（即组数等于
+通道数），输出的第 $c$ 个通道仅依赖于输入（即上一层输出 $Y'$）的第 $c$ 个通道，实现了通道分
+离（Channel Separation）：
+\begin{equation}
+    Y_{c, t, h, w} = \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{dw, c, 0, i, j, l} \cdot Y'{c, t+i, h+j, w+l} + b{c}
+\end{equation}
+通过这种分解，总计算量变为 $O(C_{in} \cdot C_{out} \cdot THW + C_{out} \cdot k^3 \cdot THW)$。与标准
+3D卷积的 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$ 相比，当输入通
+道数 $C_{in}$ 较大时（通常 $C_{in} \gg 1$），计算量减少了约 $k^3$ 倍，在显著降低计算复杂度的同时保持了模型的表达能力。
 
-\subsection{单阶段时空动作检测方法}
-稳定性分……
+\subsection{基于Transformer的视频特征提取器}
+
+Transformer架构已经在图像处理领域也得到了广泛的应用，Vision Transformer（ViT）\cite{vit}作为最具
+代表性的工作之一，通过将图片进行Patch化为不同的图像块，并通过空间位置编码将视觉特征提取转
+化为一个序列学习问题。ViT的成功表明了Transformer在视觉任务中的潜力，然而，由于视频数据中
+时间维度的存在，如何利用Transformer有效地进行时空建模成为问题的关键。
+
+% TimeSformer的首先将Transformer架构应用在视频特征提取中，对于一个视频片段 $X \in \mathbb{R}^{H \times W \times 3 \times F}$，
+% 其中 $F$ 是帧数，$H \times W$ 是帧的空间分辨率，$3$ 代表RGB通道。为了适配Transformer的
+% 输入格式，模型首先执行Patch分解。首先，每一帧被分解为 $N$ 个非重叠的补丁，每个补丁的大小
+% 为 $P \times P$，Patch的总数为 $N = HW / P^2$，然后，每个Patch会被展平成一个向量 
+% $x_{(p,t)} \in \mathbb{R}^{3P^2}$，其中 $p = 1, \dots, N$ 表示空间位置索引，
+% $t = 1, \dots, F$ 表示时间索引。这一过程将三维视频体积转化为了一长串的向量序列。
+% 随后，TimeSformer通过一个可学习的线性矩阵 $E \in \mathbb{R}^{D \times 3P^2}$ 将每个Patch
+% 映射到一个嵌入向量 $z_{(p,t)}^{(0)} \in \mathbb{R}^D$：
+% \begin{equation}
+%     z_{(p,t)}^{(0)} = E x_{(p,t)} + e_{(p,t)}^{pos}
+% \end{equation}
+% TimeSformer使用通过可学习的位置嵌入 $e_{(p,t)}^{pos}$显式地加入位置信息，
+% 使模型能够区分同一个补丁在不同帧中的位置以及同一帧中不同补丁的位置。
+% 随后，TimeSpace通过分离式时空注意力将时空注意力分解为两个独立、连续的步骤。
+% 对于时间注意力，每个Patch $(p, t)$ 仅与同一空间位置但在其他帧中的Patch进行注意力计算,捕捉了
+% 该位置随时间的运动变化。经过时间注意力处理后的特征，再与同一帧内的所有其
+% 他Patch进行空间注意力计算，这一步捕捉了该时刻的空间上下文信息，这样的设计使得计算复杂度的大幅降低，
+% 联合注意力的比较次数约为 $(NF)^2$，而分离注意力将每个Patch的计算次数从$NF$降低到了$N+F$，
+% 使得模型能够处理更高分辨率和更长的视频，并且由于时间注意力和空间注意力使用不同的权重矩阵
+% ，模型实际上拥有了更多的参数来分别专门学习时间动态和空间特征，这种解耦反而提高了模型的泛化能力。
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=0.3\textwidth]{figures/timesformer.png}
+%     \caption{TimeSformer的分离式时空注意力与联合注意力的区别}\label{Fig2-3}
+% \end{figure}
+
+ViViT（Video Vision Transformer）\cite{vivit}创新性地提出了管状嵌入视频patch化的方法。
+如图所示，它从视频中切出“时空管嵌入”作为基本的时空patch单元，这保证了每个patch都跨越
+了空间和时间维度，这种方式能让模型在最初阶段就捕捉到时空演变信息。假设输入的视频为一个四
+维张量$V \in \mathbb{R}^{T \times H \times W \times C}$，对于大小为$t \times h \times w$的
+一个3D窗口，这个过程将视频 $V$ 切分为$ N = \left\lfloor \frac{T}{t} \right\rfloor \times \left\lfloor \frac{H}{h} \right\rfloor \times \left\lfloor \frac{W}{w} \right\rfloor $
+个不重叠的时空管嵌入 $p_i$,每个 $p_i$ 的维度为 $\mathbb{R}^{t \times h \times w \times C}$。
+由于Transformer只能计算序列化的token，因此ViViT将每一个时空管嵌入$p_i$展平成一个一维的向量
+$\mathbf{x}_i \in \mathbb{R}^{thwC}$，然后通过一个可学习的权重矩阵 $\mathbf{E} \in \mathbb{R}^{d \times (thwC)}$ 
+进行线性投影，得到维度为 $d$ 的Token:
+\begin{equation}
+    \mathbf{z}_i = \mathbf{E} \mathbf{x}_i \in \mathbb{R}^d
+\end{equation}
+结合位置编码，输入到Transformer编码器的第0层序列可表示为:
+\begin{equation}
+    \mathbf{Z}_0 = [ \mathbf{z}_{cls} ; \mathbf{z}_1 + \mathbf{e}_1 ; \mathbf{z}_2 + \mathbf{e}_2 ; \dots ; \mathbf{z}_N + \mathbf{e}_N ]
+\end{equation}
+其中$\mathbf{z}_{cls}$ 是用于分类的特殊Token，$\mathbf{e}_i$是学习到的时空位置编码，用于保留Token在原视频中的位置信息，
+这种设计不仅降低计算复杂度，而且保留了局部时空特征，有利于模型建立时空长程依赖关系。
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/vivit_st_token_2-3.png}
+    \caption{ViViT的时空管道嵌入}\label{Fig2-3}
+\end{figure}
+
+\subsection{基于多模态大模型的视频特征提取器}
+
+近些年，随着多模态大模型（如GPT-4、PaLM-E等）的兴起，基于视频-文本预训练模型的视频特征提取方法逐
+渐受到关注。这些模型通过在极大规模视频和文本数据上进行联合预训练，不仅学习到丰富的时空特征表示，并能
+从文本中获得丰富的语义信息，具有强大的跨模态理解能力。
+
+LLaVA-Video通过动态窗口采样与线性投影将视频看作带有时序标记的高分辨率图像序列，它通过在空间维度
+将每一帧图像根据分辨率切分为 $N$ 个子网格（Sub-patches），每个网格独立提
+取特征，而为了防止Token数量爆炸，它会对连续帧的相同空间位置进行特征聚合。对于一个有$T$帧的视频，
+经过视觉编码器后得到特征矩阵 $X \in \mathbb{R}^{T \times N \times D}$，其中$N$是每帧的
+Token数，$D$ 是特征维度，LLaVA会应用一个步长为$s$的池化操作来压缩时间维度：
+\begin{equation}
+        X'_{i, j} = \text{Linear}(\text{Pool}(X_{t:t+s, i, j}))
+\end{equation}
+$\text{Pool}$表示池化操作。由于相邻帧之间的空间冗余度极高，通过在投影层中引入1D卷积或池化，
+它能将 $T$ 帧压缩为 $T/s$ 个时序特征块，同时保留物体移动的轨迹。
+
+Qwen2.5-VL通过动态分辨率（Naive Dynamic Resolution）机制和多模态旋转位置编码（M-RoPE），
+有效保留了视频Token的原生时空信息。在输入处理阶段，模型将视频视为一个连续的三维时空体，为
+每一个视觉Token分配唯一的三维坐标 $(t, h, w)$。M-RoPE的核心在于通道解耦（Channel Decomposition）,
+它不将位置编码简单叠加，而是将Query和Key的特征向量在通道维度上切分为三个子空间，分别对应时
+间、高度和宽度。位置信息 $f(t, h, w)$ 通过以下方式注入：
+\begin{equation}
+    \mathbf{q}_{rot} = \text{Concat}\left(\mathbf{q}t \cdot \mathbf{R}{\Theta, t}, \quad\mathbf{q}h \cdot \mathbf{R}{\Theta, h}, \quad\mathbf{q}w \cdot \mathbf{R}{\Theta, w}\right)
+\end{equation}
+其中，$\mathbf{q}_t, \mathbf{q}_h, \mathbf{q}_w$ 是原向量 $\mathbf{q}$ 切分后的三个分量，
+$\mathbf{R}_{\Theta, p}$ 表示在位置 $p$ 处的旋转矩阵。通过这种机制，Attention 在计算两个任意Token的相关性时，
+实际上是在计算它们在时空三个维度上的相对位置的综合投影，从而捕捉到视频中真实的物理距离和时序依赖。
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/qwen_vl2_2-4.png}
+    \caption{Qwen的原生分辨率机制}\label{Fig2-4}
+\end{figure}
+
+
+\section{基于查询的时空动作检测方法}
+时空动作检测算法可以分为双阶段检测范式和单阶段检测范式两大类方法，然而，由于双阶段检测
+范式依赖于目标检测器来生成候选的主体区域，这使得其性能受到目标检测器的限制，在处理体育场景这种复杂情况存在困难。
+早期单阶段检测方法参考YOLO、CenterNet等基于锚框的范式，但这些方法通常需要设计复杂的锚框生成策略，近年来，
+受到DETR，AdaMix，DEIM等基于查询的单阶段目标检测器的影响，时空动作检测方法也得到了长足发展。
+本节将重点介绍基于查询机制的时空动作检测方法的理论基础和相关方法。
+
+\subsection{DETR设计概述}
+
+基于查询的检测任务方法的核心思想是通过一组可学习的查询（Queries）来直接预测图像或视频中的目标，最早由目标检测
+任务提出了DETR（Detection Transformer）实现。DETR通过引入Transformer架构，利用自注意力机制来建模图像中不同
+区域之间的关系，并通过一组可学习的查询向量来表示潜在的目标位置和类别。
 
 \subsection{基于查询的时空动作检测方法}
 
+TubeR最早将基于查询的检测方法引入到时空动作检测任务中。TubeR提出的Tubelet Queries将DETR的学习目标从二维的
+图像扩展为了三维的动作管，Tubelet Queries记为$\mathcal{Q}=\{Q_1,..., Q_N\}$，
+其中$N$是预设的查询数量，而$Q_i$不再是一个单独的查询向量，而是一个查询序列：
+\begin{equation}
+Q_i = \{q_{i,1}, q_{i,2},\\..., q_{i,T_{out}}\}
+\end{equation}
+这里，$q_{i,t} \in \mathbb{R}^{C}$ 是对应于第$i$个动作管在第$t$帧的查询嵌入，$T_{out}$是输出的帧数，
+这种设计使得$Q_i$能够显式地对动作的时序演变进行建模。
+由于直接对所有$N \times T_{out}$个查询进行全自注意力计算计算量巨大，
+为此TubeR设计了Tubelet-Attention (TA) 模块，TA模块将注意力机制分解为两个正交的步骤，通过分别在时间维度和空间维度
+进行自注意力计算。具体来说，空间自注意力 (Spatial Self-Attention)
+该层进行同一帧种不同动作实例的关系建模，其输入为同一时刻$t$的所有查询：
+\begin{equation}
+\text{Input}_{SSA} = \{q_{1,t}, q_{2,t},..., q_{N,t}\} \quad \forall t \in \{1,..., T_{out}\}
+\end{equation}
+这使得模型能够理解同一画面中不同动作实例之间的交互。而时间自注意力 (Temporal Self-Attention, TSA)学习一个动作实例
+沿时间维度的状态变化，其输入为同一个动作实例在不同时间步$i$的所有查询：
+\begin{equation}
+\text{Input}_{TSA} = \{q_{i,1}, q_{i,2},..., q_{i,T_{out}}\} \quad \forall i \in \{1,..., N\}
+\end{equation}
+时间自注意力要求同一实例在时间维度$q_{i,t}$和$q_{i,t+1}$关注同一个目标对象，隐式地学习目标的运动轨迹。
+
+PoSTAL则是设计了一种结合视觉感知与语言引导的多模态学习框架，利用动作实例
+外观的自然语言描述作为额外信息的补充辅助动作检测和识别。具体地，PoSTAL的模型设计可以由下式概况：
+\begin{equation}
+Y, \hat{y} = \mathcal{D}(\mathcal{P}(X, text))
+\end{equation}
+其中，$X \in \mathbb{R}^{T \times H \times W \times C}$表示输入视频，
+$text$表示包含球员的球衣颜色和号码结构化句子，$\mathcal{P}$ 表示提示驱动的目标动作编码器,它是一个由基
+于BLIP的文本特征编码器和视频特征编码器组成的多模态特征提取模块，负责将原始视频张量$X$与文本提示$text$进行融
+合，生成富含目标语义信息的特征表示，最后输出目标动作管$Y$和其对应的动作类别$\hat{y}$，
+$\mathcal{D}$ 表示动作管解码器，负责从编码特征中直接预测出动作管道的时空坐标和动作类别。
+
+
 \section{相关数据集和评价指标}
-\subsection{相关数据集}
 
+本文使用的数据集有UCF101-24、multisports，使用的评价指标包括性能评价指标
+和误差分析指标，其中性能评价指标包括帧平均精度（Frame-level Mean Average Precision，Frame-map）
+和视频平均精度（Video-level Mean Average Precision，Video-map），误差分析指标包括
+分类误差（Classification Error， EC）、定位误差（Localization Error，EL）时间误差（Time Error，ET）、
+检测误差（Missed Detection，EM）和其它误差（Other Error，EO）。
+
+
+\subsection{数据集简介}
+
+\textbf{（1）UCF101-24}
+
+UCF101-24数据集源于2012年发布的UCF101数据集，UCF101数据集针对动作分类任务，共包含101类动作，2013年
+在THUMOS 2013挑战赛中从中选取了其中的24类动作进行了额外逐帧边界框标注和时间区间标注，构建了UCF101-24
+数据集用于时空动作检测任务。UCF101-24涉及的动作类别主要为体育项目和少量的日常生活行为，其中体育动作包括篮球、
+足球、排球、网球、潜水和滑冰等体育项目，以及遛狗、跳绳和骑自行车等日常生活行为，UCF101-24视频采集自YouTube，
+视频的分辨率为320×240，具有复杂背景、多变的视角和不同光照条件。视频总数约3207个视频片段，其中训练集
+包含2293个视频，测试集包含914个视频。
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/ucf101_2-5.png}
+    \caption{UCF101-24数据集样例}\label{Fig2-5}
+\end{figure}
+
+\textbf{（2）MultiSports}
+
+MultiSports（Multi-person Sports Actions）数据集由南京大学的Lei Chen等人于2021年提出，它专注
+于竞技体育场景的多人时空动作检测任务，涵盖了篮球、排球、足球和竞技健美操4类运动项目。
+MultiSports数据集同样采集自YouTube，视频样本分辨率为1080p，并包含3200个视频片段并定义了66个精细动作类别，
+这些运动具有多人参与、动作类别定义明确且边界清晰的特点，是目前体育运动场景时空动作检测领域最大的公开数据集。
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/multisports_2-6.png}
+    \caption{Multisports数据集样例}\label{Fig2-6}
+\end{figure}
+
+
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/Multisports复杂度_2-7.png}
+    \caption{Multisports复杂度}\label{Fig2-7}
+\end{figure}
+
+Multisports数据集充分体现了体育场景下时空动作检测的挑战性，为了评估数据集中动作管的复杂性，本节利用管内IoU（IoU\_Intra）
+来衡量单个动作管内部的复杂度，并利用管间IoU（IoU\_Inter）来评估视频中动作管间的相互作用。
+给定一个包含$M$个动作管$T_1, T_2, \dots, T_M$的视频，其中动作管$T_j = \{B_j^1, B_j^2, \dots, B_j^l\}, j \in \{1, 2, \dots, M\}, B_j^i (i \in \{1, 2, \dots, l\})$
+是第$i$帧的边界框。动作管$T_m$的管内IoU定义为管内相邻框对IoU的平均值:
+\begin{equation}
+\text{IoU\_Intra} = \sum_{i=1}^{l-1} \text{IoU}(B_m^i, B_m^{i+1}) / (l - 1) \quad
+\end{equation}
+$\text{IoU\_Intra}$越低，表示该动作管的形状复杂度越高。
+为了衡量$T_m$由于与视频中其他管柱相互作用而产生的复杂度，本文首先计算$T_m$与视频中每个其他管柱$T_j$
+之间的管间IoU:
+\begin{equation}
+\text{IoU\_Inter} = \text{TIoU}(T_m, T_j), j \in \{1, 2, \dots, M\} \& j \neq m \quad
+\end{equation}
+其中$\text{TIoU}$表示两个动作管之间的IoU。
+由图可知UCF101-24仅有50\%的管内IoU低于0.5，相比之下MultiSports高达73\%，管柱之间更高的重叠度意
+味着更复杂的相互作用。MultiSports中85\%的管柱与其他管柱存在重叠，而UCF数据集仅为18\%。
+统计结果表明，MultiSports和UCF均含大量形状复杂的动作管柱，而MultiSports在多人数并发和动作精细度
+方面的挑战性显著更高。
+
+% \textbf{（3）FineSports}
+
+% FineSports 数据集由Jinglin Xu等人于2024年提出，它是一个专为多人细粒度
+% 动作理解设计的大规模层次化体育视频数据集。该数据集主要针对团队运动中由于运
+% 动员快速移动、激烈对抗以及视觉遮挡带来的复杂性问题而构建。数据集从NBA官方回放存档中收集了10000段视频序列，
+% 包含16048个动作实例、123014个空间边界框以及32096个相关子动作的时间边界，平均视频时长为 11.74 秒 。
+% FineSports采用两级语义结构来精确描述球员的动作流程：动作级（Action-level）：描述球员在持球状态
+% 下的粗粒度动作类别，包括 Drive（突破）、Dribble（运球）、Pass（传球）、Defense（防守）等12个类别,然后
+% 将动作进一步细化为24个子类别，例如，“突破”被细分为左侧突破、右侧突破、
+% 直线突破、底线突破和中路突破。这种细粒度划分能够揭示球员动作的内部结构和衔接关系。
+
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{figures/finesports_2-8.png}
+%     \caption{FineSports数据集样例}\label{Fig2-8}
+% \end{figure}
+% \subsection{评价指标}
 \subsection{评价指标}
+\textbf{（1）性能评价指标}
 
+时空动作检测的性能评价指标需要能评估算法在进行动作分类、时序定位和空间定位三方面的能力，
+目前领域内常用评价frame-mAP和video-mAP来对模型的性能进行评估。frame-mAP通过计算标注结果
+与预测结果在每一帧上的空间交并比（sIoU）来评估模型在空间定位方面的能力，sIoU的计算方式与传统的
+IoU相同，具体计算公式如下所示:
+\begin{equation}
+    \text{sIoU}(B_p, B_g) = \frac{Area(B_p \cap B_g)}{Area(B_p \cup B_g)}
+\end{equation}
+其中$B_p$表示预测边界框，$B_g$表示真实边界框。frame-mAP通过计算每一帧上所有动作类别的平均精度来
+评估模型的整体性能，其计算方式如下所示:
+\begin{equation}
+    \text{f-mAP} = \frac{1}{|\mathcal{C}|} \sum_{c \in \mathcal{C}} \text{AP}_c
+\end{equation}
+video-mAP是以每一个完整动作管作为计算单元来评估模型整体的性能，通过计算每个预测动作管与
+真实动作管在时间和空间维度上的时空交并比（\(\text{IoU}_{st}\)）来进行每个具体动作实例的匹配。具体来说，
+\(\text{IoU}_{st}\) 首先计算预测管道与真实管道在时间维度上的重叠区间，然后对于重叠区间内的每一帧计算
+空间IoU进行平均，具体计算公式如下所示：
+\begin{equation}
+    \text{IoU}_{st} = \frac{1}{N} \sum_{i=1}^{N} \text{IoU}(B_i, B_i')
+\end{equation}
+其中，\(B_i\) 表示预测边界框，\(B_i'\) 表示真实边界框，\(N\) 表示重叠区间内的帧数。
+video-mAP则是通过计算所有预测结果的（\(\text{IoU}_{st}\)）与真实结果进行匹配后，计算每个动作类别的平均精度，
+video-mAP引入了三维的（\(\text{IoU}_{st}\)）进行动作实例的匹配，更加注重模型在时间和空间维度上对动作区间的精准定位
+能力，其计算公式如下所示:
+\begin{equation}
+    \text{video-mAP} = \frac{1}{|\mathcal{C}|} \sum_{c \in \mathcal{C}} \text{AP}_c
+\end{equation}
+
+
+\textbf{（2）误差分析指标}
+
+由于时空动作检测本质上涉及到动作分类、时序定位和空间定位三方面的任务，因此仅通过frame-mAP和video-mAP并
+不能够全面反映模型在各个方面的表现。为了更细致地分析模型在不同任务上的误差情况，本文引入了误差分析指标，
+我们主要讨论以下五种误差类型：分类误差（EC）、定位误差（EL）、时间误差（ET）、检测误差（EM）和其他误差（EO）。
+（1）分类误差（EC）:当预测的动作类别与真实类别不匹配时，产生分类误差。分类误差反映了模型在动作识别方面的能力,
+动作管时空（\(\text{IoU}_{st}\)）大于与真实值的阈值，但其动作类别与真实值的类别不同。
+
+（2）定位误差（EL）:当预测的动作类别正确，但时空位置与真实位置不匹配时，产生定位误差。定位误差反映了模型在
+空间定位方面的能力，动作管的时空（\(\text{IoU}_{st}\)）介于两个阈值之间。预测动作管与某个真实值具有相同的
+动作类别和时间IoU，且时间IoU大于阈值，但其在真实值与检测结果的时间交集区域的平均空间边界框IoU较低，导致检测
+结果的IoU低于所需阈值。
+
+（3）时间误差（ET）:当预测的动作类别正确且空间位置匹配，但时间区间与真实区间不匹配时，产生时间误差。时间误差
+反映了模型在时序定位方面的能力，动作管的时间IoU介于两个阈值之间。检测结果与动作类别相同，且平均空间边界框IoU大于阈值，
+在时间交集区域内与某些真实值相同，但时间IoU较低，使得动作管时空（\(\text{IoU}_{st}\)）低于所需阈值。
+
+（4）检测误差（EM）:当模型未能检测到真实存在的动作实例时，产生检测误差。检测误差反映了模型在动作实例发现方面的能力。
+检测结果与任何真实值均不匹配，导致动作管时空（\(\text{IoU}_{st}\)）低于所需阈值。
+
+（5）其他误差（EO）:除上述四种误差外的其他类型误差，例如由于视频质量差、遮挡严重等原因导致的误差。
+
+各类误差的计算方式和关系具体如下图所示：
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/误差分析_2-5.png}
+    \caption{误差分析指标示意图}\label{Fig2-6}
+\end{figure} 
 \section{本章小结}
 \label{sec:theorem}
 

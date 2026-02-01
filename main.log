@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.8)  15 JAN 2026 16:43
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.8)  1 FEB 2026 16:24
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -668,7 +668,18 @@ Package fontspec Info:
 (fontspec)             <->"Times New
 (fontspec)             Roman/BI/OT:script=latn;language=dflt;+smcp;mapping=tex-text;"
 
- (./main.aux (./body/denotation.aux) (./body/chap01.aux) (./body/chap02.aux) (./body/chap03.aux) (./body/chap04.aux) (./body/conclusion.aux
+ (./main.aux (./body/denotation.aux) (./body/chap01.aux) (./body/chap02.aux
+
+LaTeX Warning: Label `Fig2-6' multiply defined.
+
+) (./body/chap03.aux) (./body/chap04.aux
+
+LaTeX Warning: Label `Fig4-9' multiply defined.
+
+
+LaTeX Warning: Label `Fig4-9' multiply defined.
+
+) (./body/conclusion.aux
 
 LaTeX Warning: Label `sec:conclusion' multiply defined.
 
@@ -947,9 +958,6 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
  (./body/chap01.tex
 Chapter 1.
-
-Package natbib Warning: Citation `中国视听报告' on page 1 undefined on input line 12.
-
 File: figures/体育时空动作检测应用_1-1.png Graphic file (type bmp)
 <figures/体育时空动作检测应用_1-1.png>
 
@@ -961,11 +969,11 @@ File: figures/体育时空动作检测应用_1-1.png Graphic file (type bmp)
 
 
 ]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 
 [2]
+
+LaTeX Warning: Reference `1-2' on page 3 undefined on input line 80.
+
 File: figures/帧级、片段级时空动作检测_1-2.png Graphic file (type bmp)
 <figures/帧级、片段级时空动作检测_1-2.png>
 
@@ -1000,87 +1008,174 @@ File: figures/动作检测、时序动作检测、时空动作检测任务定义
 
 
 ]
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 66.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 65.
 
 
-[11])
+Package natbib Warning: Citation `c3d' on page 11 undefined on input line 80.
+
+
+Underfull \vbox (badness 8113) has occurred while \output is active []
+
+
+
+[11]
 
 [12]
-\openout2 = `body/chap03.aux'.
 
- (./body/chap03.tex
-Chapter 3.
-)
-
-[13
+[13]
+File: figures/vivit_st_token_2-3.png Graphic file (type bmp)
+<figures/vivit_st_token_2-3.png>
 
 
+[14]
+File: figures/qwen_vl2_2-4.png Graphic file (type bmp)
+<figures/qwen_vl2_2-4.png>
 
-
-]
-\openout2 = `body/chap04.aux'.
-
- (./body/chap04.tex
-Chapter 4.
-File: figures/Fig4-1.png Graphic file (type bmp)
-<figures/Fig4-1.png>
-
-
-[14
-
-
-
-
-]
 
 [15]
+Underfull \vbox (badness 2503) has occurred while \output is active []
+
+
 
 [16]
 
 [17]
+File: figures/ucf101_2-5.png Graphic file (type bmp)
+<figures/ucf101_2-5.png>
+File: figures/multisports_2-6.png Graphic file (type bmp)
+<figures/multisports_2-6.png>
+File: figures/Multisports复杂度_2-7.png Graphic file (type bmp)
+<figures/Multisports复杂度_2-7.png>
+
 
 [18]
-Missing character: There is no ① (U+2460) in font Times New Roman/OT:script=latn;language=dflt;mapping=tex-text;!
-
 
 [19]
 
-Package natbib Warning: Citation `pan2018classification' on page 20 undefined on input line 188.
+[20]
 
-
-Package natbib Warning: Citation `pan2014cell' on page 20 undefined on input line 188.
-
-
-Package natbib Warning: Citation `song2013asynchronous' on page 20 undefined on input line 188.
-
-
-Package natbib Warning: Citation `lin2022adaptive' on page 20 undefined on input line 188.
-
-
-Package natbib Warning: Citation `li2021large' on page 20 undefined on input line 193.
-
-
-Package natbib Warning: Citation `shavlik1990readings' on page 20 undefined on input line 198.
-
-
-Package natbib Warning: Citation `yan2006CFG' on page 20 undefined on input line 198.
-
-
-Package natbib Warning: Citation `jxd1996' on page 20 undefined on input line 203.
-
-
-Package natbib Warning: Citation `CCPT' on page 20 undefined on input line 203.
-
+[21]
+File: figures/误差分析_2-5.png Graphic file (type bmp)
+<figures/误差分析_2-5.png>
 )
 
-[20]
+[22]
+\openout2 = `body/chap03.aux'.
+
+ (./body/chap03.tex
+Chapter 3.
+
+
+[23
+
+
+
+
+]
+
+[24])
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+[25]
+
+[26]
+\openout2 = `body/chap04.aux'.
+
+ (./body/chap04.tex
+Chapter 4.
+
+
+[27
+
+
+
+
+]
+File: figures/关联方式.png Graphic file (type bmp)
+<figures/关联方式.png>
+
+
+[28]
+File: figures/第4章/整体框架.png Graphic file (type bmp)
+<figures/第4章/整体框架.png>
+
+
+[29]
+File: figures/第4章/模块1.png Graphic file (type bmp)
+<figures/第4章/模块1.png>
+
+Underfull \vbox (badness 3323) has occurred while \output is active []
+
+
+
+[30]
+Underfull \vbox (badness 1603) has occurred while \output is active []
+
+
+
+[31]
+File: figures/第4章/模块2.png Graphic file (type bmp)
+<figures/第4章/模块2.png>
+
+
+[32]
+
+[33]
+File: figures/第4章/模块3.png Graphic file (type bmp)
+<figures/第4章/模块3.png>
+
+
+[34]
+
+[35]
+
+[36]
+
+[37]
+
+[38]
+
+[39]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+[40]
+File: figures/output_chart_beautiful.png Graphic file (type bmp)
+<figures/output_chart_beautiful.png>
+File: figures/output_chart_beautiful.png Graphic file (type bmp)
+<figures/output_chart_beautiful.png>
+File: figures/output_chart_beautiful.png Graphic file (type bmp)
+<figures/output_chart_beautiful.png>
+
+
+[41]
+
+[42]
+
+[43]
+
+[44]
+File: figures/微信图片_20260129231354.png Graphic file (type bmp)
+<figures/微信图片_20260129231354.png>
+File: figures/微信图片_20260129231354.png Graphic file (type bmp)
+<figures/微信图片_20260129231354.png>
+File: figures/微信图片_20260129231354.png Graphic file (type bmp)
+<figures/微信图片_20260129231354.png>
+)
+
+[45]
+
+[46]
 \openout2 = `body/conclusion.aux'.
 
  (./body/conclusion.tex
 Chapter 5.
 )
 
-[21
+[47
 
 
 
@@ -1090,21 +1185,30 @@ Chapter 5.
 
  (./body/ack.tex)
 
-[22
+[48
 
+
+
+
+
+] (./main.bbl
+
+[49
 
 
 
 
 ]
-No file main.bbl.
-(./body/appendix01.tex
+
+[50]
+
+[51]) (./body/appendix01.tex
+
+[52]
 附录 1.
 ) (./body/appendix02.tex
 
-[23
-
-
+[53
 
 
 ]
@@ -1116,7 +1220,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 5--10
 
 ) (./body/appendix03.tex
 
-[24
+[54
 
 
 ]
@@ -1131,7 +1235,7 @@ Package natbib Warning: There were undefined citations.
 
 
 
-[25
+[55
 
 ] (./main.aux (./body/denotation.aux) (./body/chap01.aux) (./body/chap02.aux) (./body/chap03.aux) (./body/chap04.aux) (./body/conclusion.aux) (./body/ack.aux))
  ***********
@@ -1140,24 +1244,21 @@ L3 programming layer <2022/08/05>
  ***********
 
 
+LaTeX Warning: There were undefined references.
+
+
 LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: 017482DD3929FF38175BA8709D7116E9;4915
-(rerunfilecheck)             After:  E63A05C7770091DA26E0896EEBE828DD;4643.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 911D8653453E1781B83A05054E426E2E;5521.
  ) 
 Here is how much of TeX's memory you used:
- 18758 strings out of 473831
- 408571 string characters out of 5729466
- 812710 words of memory out of 5000000
- 41437 multiletter control sequences out of 15000+600000
- 571553 words of font info for 146 fonts, out of 8000000 for 9000
+ 18780 strings out of 473831
+ 398331 string characters out of 5729466
+ 820653 words of memory out of 5000000
+ 41438 multiletter control sequences out of 15000+600000
+ 571593 words of font info for 151 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,12n,106p,861b,543s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,12n,106p,861b,658s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (34 pages).
+Output written on main.pdf (64 pages).
