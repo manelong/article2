@@ -74,161 +74,168 @@ $\{R_t^i\}$ 是从开始时间 $t_b$ 到结束时间 $t_e$ 每一帧图像 $I_t$
     \label{tab:action_tasks}%
 \end{table}
 
-\section{视频特征提取方法}
-对视频数据中时空特征的提取与建模直接影响到时空动作检测模型的效果和性能，视频的
-时空特征包含空间信息（环境场景、人员外观等）与时序信息（运动特征、演变信息等）。
-近些年，3D卷积基础模型（C3D\cite{c3d}、CSN）和基于Transformer基础模型（Timesformer、ViViT）
-逐渐已成为主流的视频特征提取模型，随着多模态大模型的兴起，基于视频-文本预训练模型
-（LLaVA-Video，Qwen-vl）的视频特征提取方法也逐渐受到关注。本节将介绍这些方法的基本原理和特点。
+% \section{视频特征提取方法}
+% 对视频数据中时空特征的提取与建模直接影响到时空动作检测模型的效果和性能，视频的
+% 时空特征包含空间信息（环境场景、人员外观等）与时序信息（运动特征、演变信息等）。
+% 近些年，3D卷积基础模型（C3D\cite{c3d}、CSN）和基于Transformer基础模型（Timesformer、ViViT）
+% 逐渐已成为主流的视频特征提取模型，随着多模态大模型的兴起，基于视频-文本预训练模型
+% （LLaVA-Video，Qwen-vl）的视频特征提取方法也逐渐受到关注。本节将介绍这些方法的基本原理和特点。
 
-\subsection{基于3D卷积的视频特征提取器}
-% 传统的基于2D卷积已经在图像任务中取得了显著的成果，但是在视频任务中，2D卷积只能捕捉
-% 空间信息，无法有效建模时间维度的信息，
-虽然有一些基于2D卷积的方法（MOC\cite{moc}、TSM\cite{tsm}）通过在时间维度堆叠
-特征图辅以时序信息提取模块来捕捉时序信息，但是这些方法对时空信息的挖掘通常存在局限。
-3D卷积能够在空间和时间维度上同时进行卷积操作，从而捕捉视频中的时空特征，
-因此，通过引入3D卷积核来同时处理空间和时间维度的信息成为一种解决方案。
+% \subsection{基于3D卷积的视频特征提取器}
+% % 传统的基于2D卷积已经在图像任务中取得了显著的成果，但是在视频任务中，2D卷积只能捕捉
+% % 空间信息，无法有效建模时间维度的信息，
+% 虽然有一些基于2D卷积的方法（MOC\cite{moc}、TSM\cite{tsm}）通过在时间维度堆叠
+% 特征图辅以时序信息提取模块来捕捉时序信息，但是这些方法对时空信息的挖掘通常存在局限。
+% 3D卷积能够在空间和时间维度上同时进行卷积操作，从而捕捉视频中的时空特征，
+% 因此，通过引入3D卷积核来同时处理空间和时间维度的信息成为一种解决方案。
 
 
-C3D（Convolutional 3D）是视频理解领域的开创性模型之一，它确立了将 $3 \times 3 \times 3$ 的
-3D卷积核作为时空特征学习的基本计算单元，证明了3D卷积网络能够同时从视频中学习空间和时序特征。
-具体来说，对于输入视频片段 $X \in \mathbb{R}^{C_{in} \times T \times H \times W}$ 和3D卷
-积核 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k \times k \times k}$，其中 $C_{in}$ 
-表示输入通道数，$C_{out}$ 表示输出通道数，$k$ 为卷积核的空间与时间尺寸，$T, H, W$ 分别表示时间
-帧数、高度和宽度。在进行特征提取时，标准3D卷积核将在输入特征图上滑动，输出特征
-图 $Y \in \mathbb{R}^{C_{out} \times t \times h \times w}$。其第 $c_{out}$ 个输出通道在
-位置 $(t, h, w)$ 的元素计算公式为：
-\begin{equation}
-    Y_{c_{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{c_{out}, c_{in}, i, j, l} \cdot X_{c_{in}, t+i, h+j, w+l} + b_{c_{out}}
-\end{equation}
-完成一次该操作，其总计算量（FLOPs）约为 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$。
-
-为了降低计算复杂度并减轻过拟合，CSN（Channel-Separated Convolutional Networks）引入了分组卷
-积的思想，将标准的 $k \times k \times k$ 3D卷积分解为逐点卷积（Pointwise Convolution）和深度卷
-积（Depthwise Convolution）。首先，利用 $1 \times 1 \times 1$ 的逐点卷积核 
-$W_{pw} \in \mathbb{R}^{C_{out} \times C_{in} \times 1 \times 1 \times 1}$ 进行通道维度
-的信息融合（Channel Interaction）。该步骤不涉及相邻时空信息的聚合，计算公式为：
-\begin{equation}
-    Y'{c{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} W_{pw, c_{out}, c_{in}} \cdot X_{c_{in}, t, h, w} + b_{c_{out}}
-\end{equation}
-随后，为了捕获时空特征，CSN 使用深度卷积。深度卷
-积核 $W_{dw}$ 的维度为 $C_{out} \times 1 \times k \times k \times k$（即组数等于
-通道数），输出的第 $c$ 个通道仅依赖于输入（即上一层输出 $Y'$）的第 $c$ 个通道，实现了通道分
-离（Channel Separation）：
-\begin{equation}
-    Y_{c, t, h, w} = \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{dw, c, 0, i, j, l} \cdot Y'{c, t+i, h+j, w+l} + b{c}
-\end{equation}
-通过这种分解，总计算量变为 $O(C_{in} \cdot C_{out} \cdot THW + C_{out} \cdot k^3 \cdot THW)$。与标准
-3D卷积的 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$ 相比，当输入通
-道数 $C_{in}$ 较大时（通常 $C_{in} \gg 1$），计算量减少了约 $k^3$ 倍，在显著降低计算复杂度的同时保持了模型的表达能力。
-
-\subsection{基于Transformer的视频特征提取器}
-
-Transformer架构已经在图像处理领域也得到了广泛的应用，Vision Transformer（ViT）\cite{vit}作为最具
-代表性的工作之一，通过将图片进行Patch化为不同的图像块，并通过空间位置编码将视觉特征提取转
-化为一个序列学习问题。ViT的成功表明了Transformer在视觉任务中的潜力，然而，由于视频数据中
-时间维度的存在，如何利用Transformer有效地进行时空建模成为问题的关键。
-
-% TimeSformer的首先将Transformer架构应用在视频特征提取中，对于一个视频片段 $X \in \mathbb{R}^{H \times W \times 3 \times F}$，
-% 其中 $F$ 是帧数，$H \times W$ 是帧的空间分辨率，$3$ 代表RGB通道。为了适配Transformer的
-% 输入格式，模型首先执行Patch分解。首先，每一帧被分解为 $N$ 个非重叠的补丁，每个补丁的大小
-% 为 $P \times P$，Patch的总数为 $N = HW / P^2$，然后，每个Patch会被展平成一个向量 
-% $x_{(p,t)} \in \mathbb{R}^{3P^2}$，其中 $p = 1, \dots, N$ 表示空间位置索引，
-% $t = 1, \dots, F$ 表示时间索引。这一过程将三维视频体积转化为了一长串的向量序列。
-% 随后，TimeSformer通过一个可学习的线性矩阵 $E \in \mathbb{R}^{D \times 3P^2}$ 将每个Patch
-% 映射到一个嵌入向量 $z_{(p,t)}^{(0)} \in \mathbb{R}^D$：
+% C3D（Convolutional 3D）是视频理解领域的开创性模型之一，它确立了将 $3 \times 3 \times 3$ 的
+% 3D卷积核作为时空特征学习的基本计算单元，证明了3D卷积网络能够同时从视频中学习空间和时序特征。
+% 具体来说，对于输入视频片段 $X \in \mathbb{R}^{C_{in} \times T \times H \times W}$ 和3D卷
+% 积核 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k \times k \times k}$，其中 $C_{in}$ 
+% 表示输入通道数，$C_{out}$ 表示输出通道数，$k$ 为卷积核的空间与时间尺寸，$T, H, W$ 分别表示时间
+% 帧数、高度和宽度。在进行特征提取时，标准3D卷积核将在输入特征图上滑动，输出特征
+% 图 $Y \in \mathbb{R}^{C_{out} \times t \times h \times w}$。其第 $c_{out}$ 个输出通道在
+% 位置 $(t, h, w)$ 的元素计算公式为：
 % \begin{equation}
-%     z_{(p,t)}^{(0)} = E x_{(p,t)} + e_{(p,t)}^{pos}
+%     Y_{c_{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{c_{out}, c_{in}, i, j, l} \cdot X_{c_{in}, t+i, h+j, w+l} + b_{c_{out}}
 % \end{equation}
-% TimeSformer使用通过可学习的位置嵌入 $e_{(p,t)}^{pos}$显式地加入位置信息，
-% 使模型能够区分同一个补丁在不同帧中的位置以及同一帧中不同补丁的位置。
-% 随后，TimeSpace通过分离式时空注意力将时空注意力分解为两个独立、连续的步骤。
-% 对于时间注意力，每个Patch $(p, t)$ 仅与同一空间位置但在其他帧中的Patch进行注意力计算,捕捉了
-% 该位置随时间的运动变化。经过时间注意力处理后的特征，再与同一帧内的所有其
-% 他Patch进行空间注意力计算，这一步捕捉了该时刻的空间上下文信息，这样的设计使得计算复杂度的大幅降低，
-% 联合注意力的比较次数约为 $(NF)^2$，而分离注意力将每个Patch的计算次数从$NF$降低到了$N+F$，
-% 使得模型能够处理更高分辨率和更长的视频，并且由于时间注意力和空间注意力使用不同的权重矩阵
-% ，模型实际上拥有了更多的参数来分别专门学习时间动态和空间特征，这种解耦反而提高了模型的泛化能力。
+% 完成一次该操作，其总计算量（FLOPs）约为 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$。
+
+% 为了降低计算复杂度并减轻过拟合，CSN（Channel-Separated Convolutional Networks）引入了分组卷
+% 积的思想，将标准的 $k \times k \times k$ 3D卷积分解为逐点卷积（Pointwise Convolution）和深度卷
+% 积（Depthwise Convolution）。首先，利用 $1 \times 1 \times 1$ 的逐点卷积核 
+% $W_{pw} \in \mathbb{R}^{C_{out} \times C_{in} \times 1 \times 1 \times 1}$ 进行通道维度
+% 的信息融合（Channel Interaction）。该步骤不涉及相邻时空信息的聚合，计算公式为：
+% \begin{equation}
+%     Y'{c{out}, t, h, w} = \sum_{c_{in}=0}^{C_{in}-1} W_{pw, c_{out}, c_{in}} \cdot X_{c_{in}, t, h, w} + b_{c_{out}}
+% \end{equation}
+% 随后，为了捕获时空特征，CSN 使用深度卷积。深度卷
+% 积核 $W_{dw}$ 的维度为 $C_{out} \times 1 \times k \times k \times k$（即组数等于
+% 通道数），输出的第 $c$ 个通道仅依赖于输入（即上一层输出 $Y'$）的第 $c$ 个通道，实现了通道分
+% 离（Channel Separation）：
+% \begin{equation}
+%     Y_{c, t, h, w} = \sum_{i=0}^{k-1} \sum_{j=0}^{k-1} \sum_{l=0}^{k-1} W_{dw, c, 0, i, j, l} \cdot Y'{c, t+i, h+j, w+l} + b{c}
+% \end{equation}
+% 通过这种分解，总计算量变为 $O(C_{in} \cdot C_{out} \cdot THW + C_{out} \cdot k^3 \cdot THW)$。与标准
+% 3D卷积的 $O(C_{in} \cdot C_{out} \cdot k^3 \cdot THW)$ 相比，当输入通
+% 道数 $C_{in}$ 较大时（通常 $C_{in} \gg 1$），计算量减少了约 $k^3$ 倍，在显著降低计算复杂度的同时保持了模型的表达能力。
+
+% \subsection{基于Transformer的视频特征提取器}
+
+% Transformer架构已经在图像处理领域也得到了广泛的应用，Vision Transformer（ViT）\cite{vit}作为最具
+% 代表性的工作之一，通过将图片进行Patch化为不同的图像块，并通过空间位置编码将视觉特征提取转
+% 化为一个序列学习问题。ViT的成功表明了Transformer在视觉任务中的潜力，然而，由于视频数据中
+% 时间维度的存在，如何利用Transformer有效地进行时空建模成为问题的关键。
+
+% % TimeSformer的首先将Transformer架构应用在视频特征提取中，对于一个视频片段 $X \in \mathbb{R}^{H \times W \times 3 \times F}$，
+% % 其中 $F$ 是帧数，$H \times W$ 是帧的空间分辨率，$3$ 代表RGB通道。为了适配Transformer的
+% % 输入格式，模型首先执行Patch分解。首先，每一帧被分解为 $N$ 个非重叠的补丁，每个补丁的大小
+% % 为 $P \times P$，Patch的总数为 $N = HW / P^2$，然后，每个Patch会被展平成一个向量 
+% % $x_{(p,t)} \in \mathbb{R}^{3P^2}$，其中 $p = 1, \dots, N$ 表示空间位置索引，
+% % $t = 1, \dots, F$ 表示时间索引。这一过程将三维视频体积转化为了一长串的向量序列。
+% % 随后，TimeSformer通过一个可学习的线性矩阵 $E \in \mathbb{R}^{D \times 3P^2}$ 将每个Patch
+% % 映射到一个嵌入向量 $z_{(p,t)}^{(0)} \in \mathbb{R}^D$：
+% % \begin{equation}
+% %     z_{(p,t)}^{(0)} = E x_{(p,t)} + e_{(p,t)}^{pos}
+% % \end{equation}
+% % TimeSformer使用通过可学习的位置嵌入 $e_{(p,t)}^{pos}$显式地加入位置信息，
+% % 使模型能够区分同一个补丁在不同帧中的位置以及同一帧中不同补丁的位置。
+% % 随后，TimeSpace通过分离式时空注意力将时空注意力分解为两个独立、连续的步骤。
+% % 对于时间注意力，每个Patch $(p, t)$ 仅与同一空间位置但在其他帧中的Patch进行注意力计算,捕捉了
+% % 该位置随时间的运动变化。经过时间注意力处理后的特征，再与同一帧内的所有其
+% % 他Patch进行空间注意力计算，这一步捕捉了该时刻的空间上下文信息，这样的设计使得计算复杂度的大幅降低，
+% % 联合注意力的比较次数约为 $(NF)^2$，而分离注意力将每个Patch的计算次数从$NF$降低到了$N+F$，
+% % 使得模型能够处理更高分辨率和更长的视频，并且由于时间注意力和空间注意力使用不同的权重矩阵
+% % ，模型实际上拥有了更多的参数来分别专门学习时间动态和空间特征，这种解耦反而提高了模型的泛化能力。
+% % \begin{figure}[!htbp]
+% %     \centering
+% %     \includegraphics[width=0.3\textwidth]{figures/timesformer.png}
+% %     \caption{TimeSformer的分离式时空注意力与联合注意力的区别}\label{Fig2-3}
+% % \end{figure}
+
+% ViViT（Video Vision Transformer）\cite{vivit}创新性地提出了管状嵌入视频patch化的方法。
+% 如图所示，它从视频中切出“时空管嵌入”作为基本的时空patch单元，这保证了每个patch都跨越
+% 了空间和时间维度，这种方式能让模型在最初阶段就捕捉到时空演变信息。假设输入的视频为一个四
+% 维张量$V \in \mathbb{R}^{T \times H \times W \times C}$，对于大小为$t \times h \times w$的
+% 一个3D窗口，这个过程将视频 $V$ 切分为$ N = \left\lfloor \frac{T}{t} \right\rfloor \times \left\lfloor \frac{H}{h} \right\rfloor \times \left\lfloor \frac{W}{w} \right\rfloor $
+% 个不重叠的时空管嵌入 $p_i$,每个 $p_i$ 的维度为 $\mathbb{R}^{t \times h \times w \times C}$。
+% 由于Transformer只能计算序列化的token，因此ViViT将每一个时空管嵌入$p_i$展平成一个一维的向量
+% $\mathbf{x}_i \in \mathbb{R}^{thwC}$，然后通过一个可学习的权重矩阵 $\mathbf{E} \in \mathbb{R}^{d \times (thwC)}$ 
+% 进行线性投影，得到维度为 $d$ 的Token:
+% \begin{equation}
+%     \mathbf{z}_i = \mathbf{E} \mathbf{x}_i \in \mathbb{R}^d
+% \end{equation}
+% 结合位置编码，输入到Transformer编码器的第0层序列可表示为:
+% \begin{equation}
+%     \mathbf{Z}_0 = [ \mathbf{z}_{cls} ; \mathbf{z}_1 + \mathbf{e}_1 ; \mathbf{z}_2 + \mathbf{e}_2 ; \dots ; \mathbf{z}_N + \mathbf{e}_N ]
+% \end{equation}
+% 其中$\mathbf{z}_{cls}$ 是用于分类的特殊Token，$\mathbf{e}_i$是学习到的时空位置编码，用于保留Token在原视频中的位置信息，
+% 这种设计不仅降低计算复杂度，而且保留了局部时空特征，有利于模型建立时空长程依赖关系。
 % \begin{figure}[!htbp]
 %     \centering
-%     \includegraphics[width=0.3\textwidth]{figures/timesformer.png}
-%     \caption{TimeSformer的分离式时空注意力与联合注意力的区别}\label{Fig2-3}
+%     \includegraphics[width=0.5\textwidth]{figures/vivit_st_token_2-3.png}
+%     \caption{ViViT的时空管道嵌入}\label{Fig2-3}
 % \end{figure}
 
-ViViT（Video Vision Transformer）\cite{vivit}创新性地提出了管状嵌入视频patch化的方法。
-如图所示，它从视频中切出“时空管嵌入”作为基本的时空patch单元，这保证了每个patch都跨越
-了空间和时间维度，这种方式能让模型在最初阶段就捕捉到时空演变信息。假设输入的视频为一个四
-维张量$V \in \mathbb{R}^{T \times H \times W \times C}$，对于大小为$t \times h \times w$的
-一个3D窗口，这个过程将视频 $V$ 切分为$ N = \left\lfloor \frac{T}{t} \right\rfloor \times \left\lfloor \frac{H}{h} \right\rfloor \times \left\lfloor \frac{W}{w} \right\rfloor $
-个不重叠的时空管嵌入 $p_i$,每个 $p_i$ 的维度为 $\mathbb{R}^{t \times h \times w \times C}$。
-由于Transformer只能计算序列化的token，因此ViViT将每一个时空管嵌入$p_i$展平成一个一维的向量
-$\mathbf{x}_i \in \mathbb{R}^{thwC}$，然后通过一个可学习的权重矩阵 $\mathbf{E} \in \mathbb{R}^{d \times (thwC)}$ 
-进行线性投影，得到维度为 $d$ 的Token:
-\begin{equation}
-    \mathbf{z}_i = \mathbf{E} \mathbf{x}_i \in \mathbb{R}^d
-\end{equation}
-结合位置编码，输入到Transformer编码器的第0层序列可表示为:
-\begin{equation}
-    \mathbf{Z}_0 = [ \mathbf{z}_{cls} ; \mathbf{z}_1 + \mathbf{e}_1 ; \mathbf{z}_2 + \mathbf{e}_2 ; \dots ; \mathbf{z}_N + \mathbf{e}_N ]
-\end{equation}
-其中$\mathbf{z}_{cls}$ 是用于分类的特殊Token，$\mathbf{e}_i$是学习到的时空位置编码，用于保留Token在原视频中的位置信息，
-这种设计不仅降低计算复杂度，而且保留了局部时空特征，有利于模型建立时空长程依赖关系。
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/vivit_st_token_2-3.png}
-    \caption{ViViT的时空管道嵌入}\label{Fig2-3}
-\end{figure}
+% \subsection{基于多模态大模型的视频特征提取器}
 
-\subsection{基于多模态大模型的视频特征提取器}
+% 近些年，随着多模态大模型（如GPT-4、PaLM-E等）的兴起，基于视频-文本预训练模型的视频特征提取方法逐
+% 渐受到关注。这些模型通过在极大规模视频和文本数据上进行联合预训练，不仅学习到丰富的时空特征表示，并能
+% 从文本中获得丰富的语义信息，具有强大的跨模态理解能力。
 
-近些年，随着多模态大模型（如GPT-4、PaLM-E等）的兴起，基于视频-文本预训练模型的视频特征提取方法逐
-渐受到关注。这些模型通过在极大规模视频和文本数据上进行联合预训练，不仅学习到丰富的时空特征表示，并能
-从文本中获得丰富的语义信息，具有强大的跨模态理解能力。
+% LLaVA-Video通过动态窗口采样与线性投影将视频看作带有时序标记的高分辨率图像序列，它通过在空间维度
+% 将每一帧图像根据分辨率切分为 $N$ 个子网格（Sub-patches），每个网格独立提
+% 取特征，而为了防止Token数量爆炸，它会对连续帧的相同空间位置进行特征聚合。对于一个有$T$帧的视频，
+% 经过视觉编码器后得到特征矩阵 $X \in \mathbb{R}^{T \times N \times D}$，其中$N$是每帧的
+% Token数，$D$ 是特征维度，LLaVA会应用一个步长为$s$的池化操作来压缩时间维度：
+% \begin{equation}
+%         X'_{i, j} = \text{Linear}(\text{Pool}(X_{t:t+s, i, j}))
+% \end{equation}
+% $\text{Pool}$表示池化操作。由于相邻帧之间的空间冗余度极高，通过在投影层中引入1D卷积或池化，
+% 它能将 $T$ 帧压缩为 $T/s$ 个时序特征块，同时保留物体移动的轨迹。
 
-LLaVA-Video通过动态窗口采样与线性投影将视频看作带有时序标记的高分辨率图像序列，它通过在空间维度
-将每一帧图像根据分辨率切分为 $N$ 个子网格（Sub-patches），每个网格独立提
-取特征，而为了防止Token数量爆炸，它会对连续帧的相同空间位置进行特征聚合。对于一个有$T$帧的视频，
-经过视觉编码器后得到特征矩阵 $X \in \mathbb{R}^{T \times N \times D}$，其中$N$是每帧的
-Token数，$D$ 是特征维度，LLaVA会应用一个步长为$s$的池化操作来压缩时间维度：
-\begin{equation}
-        X'_{i, j} = \text{Linear}(\text{Pool}(X_{t:t+s, i, j}))
-\end{equation}
-$\text{Pool}$表示池化操作。由于相邻帧之间的空间冗余度极高，通过在投影层中引入1D卷积或池化，
-它能将 $T$ 帧压缩为 $T/s$ 个时序特征块，同时保留物体移动的轨迹。
+% Qwen2.5-VL通过动态分辨率（Naive Dynamic Resolution）机制和多模态旋转位置编码（M-RoPE），
+% 有效保留了视频Token的原生时空信息。在输入处理阶段，模型将视频视为一个连续的三维时空体，为
+% 每一个视觉Token分配唯一的三维坐标 $(t, h, w)$。M-RoPE的核心在于通道解耦（Channel Decomposition）,
+% 它不将位置编码简单叠加，而是将Query和Key的特征向量在通道维度上切分为三个子空间，分别对应时
+% 间、高度和宽度。位置信息 $f(t, h, w)$ 通过以下方式注入：
+% \begin{equation}
+%     \mathbf{q}_{rot} = \text{Concat}\left(\mathbf{q}t \cdot \mathbf{R}{\Theta, t}, \quad\mathbf{q}h \cdot \mathbf{R}{\Theta, h}, \quad\mathbf{q}w \cdot \mathbf{R}{\Theta, w}\right)
+% \end{equation}
+% 其中，$\mathbf{q}_t, \mathbf{q}_h, \mathbf{q}_w$ 是原向量 $\mathbf{q}$ 切分后的三个分量，
+% $\mathbf{R}_{\Theta, p}$ 表示在位置 $p$ 处的旋转矩阵。通过这种机制，Attention 在计算两个任意Token的相关性时，
+% 实际上是在计算它们在时空三个维度上的相对位置的综合投影，从而捕捉到视频中真实的物理距离和时序依赖。
 
-Qwen2.5-VL通过动态分辨率（Naive Dynamic Resolution）机制和多模态旋转位置编码（M-RoPE），
-有效保留了视频Token的原生时空信息。在输入处理阶段，模型将视频视为一个连续的三维时空体，为
-每一个视觉Token分配唯一的三维坐标 $(t, h, w)$。M-RoPE的核心在于通道解耦（Channel Decomposition）,
-它不将位置编码简单叠加，而是将Query和Key的特征向量在通道维度上切分为三个子空间，分别对应时
-间、高度和宽度。位置信息 $f(t, h, w)$ 通过以下方式注入：
-\begin{equation}
-    \mathbf{q}_{rot} = \text{Concat}\left(\mathbf{q}t \cdot \mathbf{R}{\Theta, t}, \quad\mathbf{q}h \cdot \mathbf{R}{\Theta, h}, \quad\mathbf{q}w \cdot \mathbf{R}{\Theta, w}\right)
-\end{equation}
-其中，$\mathbf{q}_t, \mathbf{q}_h, \mathbf{q}_w$ 是原向量 $\mathbf{q}$ 切分后的三个分量，
-$\mathbf{R}_{\Theta, p}$ 表示在位置 $p$ 处的旋转矩阵。通过这种机制，Attention 在计算两个任意Token的相关性时，
-实际上是在计算它们在时空三个维度上的相对位置的综合投影，从而捕捉到视频中真实的物理距离和时序依赖。
-
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.6\textwidth]{figures/qwen_vl2_2-4.png}
-    \caption{Qwen的原生分辨率机制}\label{Fig2-4}
-\end{figure}
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{figures/qwen_vl2_2-4.png}
+%     \caption{Qwen的原生分辨率机制}\label{Fig2-4}
+% \end{figure}
 
 
-\section{基于查询的时空动作检测方法}
+\section{单阶段时空动作检测方法}
+
 时空动作检测算法可以分为双阶段检测范式和单阶段检测范式两大类方法，然而，由于双阶段检测
 范式依赖于目标检测器来生成候选的主体区域，这使得其性能受到目标检测器的限制，在处理体育场景这种复杂情况存在困难。
 早期单阶段检测方法参考YOLO、CenterNet等基于锚框的范式，但这些方法通常需要设计复杂的锚框生成策略，近年来，
 受到DETR，AdaMix，DEIM等基于查询的单阶段目标检测器的影响，时空动作检测方法也得到了长足发展。
 本节将重点介绍基于查询机制的时空动作检测方法的理论基础和相关方法。
 
-\subsection{DETR设计概述}
+\subsection{基于锚框的单阶段时空动作检测算法}
+
+介绍MOC和YOWO等基于锚框的单阶段时空动作检测方法。
+
+\subsection{基于查询的时空动作检测算法}
+
+\subsubsection{DETR设计概述}
 
 基于查询的检测任务方法的核心思想是通过一组可学习的查询（Queries）来直接预测图像或视频中的目标，最早由目标检测
 任务提出了DETR（Detection Transformer）实现。DETR通过引入Transformer架构，利用自注意力机制来建模图像中不同
 区域之间的关系，并通过一组可学习的查询向量来表示潜在的目标位置和类别。
 
-\subsection{基于查询的时空动作检测方法}
+\subsubsection{基于查询的时空动作检测方法}
 
 TubeR最早将基于查询的检测方法引入到时空动作检测任务中。TubeR提出的Tubelet Queries将DETR的学习目标从二维的
 图像扩展为了三维的动作管，Tubelet Queries记为$\mathcal{Q}=\{Q_1,..., Q_N\}$，
@@ -266,7 +273,7 @@ $\mathcal{D}$ 表示动作管解码器，负责从编码特征中直接预测出
 
 \section{相关数据集和评价指标}
 
-本文使用的数据集有UCF101-24、multisports，使用的评价指标包括性能评价指标
+本文使用的数据集有JHMDB51-24、UCF101-24、Multisports，使用的评价指标包括性能评价指标
 和误差分析指标，其中性能评价指标包括帧平均精度（Frame-level Mean Average Precision，Frame-map）
 和视频平均精度（Video-level Mean Average Precision，Video-map），误差分析指标包括
 分类误差（Classification Error， EC）、定位误差（Localization Error，EL）时间误差（Time Error，ET）、
@@ -275,7 +282,21 @@ $\mathcal{D}$ 表示动作管解码器，负责从编码特征中直接预测出
 
 \subsection{数据集简介}
 
-\textbf{（1）UCF101-24}
+\textbf{（1）JHMDB51-24}
+
+JHMDB51-24是一个广泛用于时空动作检测任务的基准数据集，由HMDB51数据集筛选出的928个
+视频片段组成。该数据集包含21个动作类别，主要涉及单人日常行为与运动（如“梳头”、“接球”、“跑”等）。
+JHMDB51-24的：其边界框真值 (Ground Truth Bounding Boxes) 并非由人工直接绘制，
+而是基于每帧标注的15个2D人体关节位置生成的分割掩码 (Puppet Mask) 推导而来，
+因此具有极高的人体贴合度。
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/ucf101_2-5.png}
+    \caption{JHMDB51-21数据集样例}\label{Fig2-5}
+\end{figure}
+
+\textbf{（2）UCF101-24}
 
 UCF101-24数据集源于2012年发布的UCF101数据集，UCF101数据集针对动作分类任务，共包含101类动作，2013年
 在THUMOS 2013挑战赛中从中选取了其中的24类动作进行了额外逐帧边界框标注和时间区间标注，构建了UCF101-24
@@ -289,7 +310,7 @@ UCF101-24数据集源于2012年发布的UCF101数据集，UCF101数据集针对�
     \caption{UCF101-24数据集样例}\label{Fig2-5}
 \end{figure}
 
-\textbf{（2）MultiSports}
+\textbf{（3）MultiSports}
 
 MultiSports（Multi-person Sports Actions）数据集由南京大学的Lei Chen等人于2021年提出，它专注
 于竞技体育场景的多人时空动作检测任务，涵盖了篮球、排球、足球和竞技健美操4类运动项目。
